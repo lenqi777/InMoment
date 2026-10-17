@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'">
+  <title>InMoment 录音</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="mode-hidden" data-mode="hidden">
+  <section class="capture-panel" aria-label="录音浮层">
+    <div id="hold-progress" class="hold-progress" role="progressbar" aria-label="长按右键以开始录音" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hold-progress-fill"></span></div>
+    <div id="card-content" class="card-content" aria-hidden="true">
+    <header class="drag-region"><span class="brand-symbol">i</span><span>InMoment</span><span id="mode-label">灵感现场</span></header>
+    <div class="recording-body"><div id="orb" class="orb"><span class="orb-core"></span><span class="wave wave-one"></span><span class="wave wave-two"></span><span class="wave wave-three"></span><span class="wave wave-four"></span></div><div class="recording-info"><h1 id="status-title">准备留下这段想法</h1><p id="status-description">正在连接录音会话…</p><div id="timer">00:00</div></div></div>
+    <div id="error-message" class="error hidden" role="alert"></div>
+    <details id="draft-topics" class="draft-topics hidden"><summary id="draft-topics-label">分组：未分类</summary><div id="draft-topic-options" class="draft-topic-options" aria-label="已有分组，可多选"></div></details>
+    <div id="actions" class="actions"><button id="discard" class="button delete">删除</button><button id="continue" class="button secondary hidden">继续录音</button><button id="pause" class="button primary hidden">暂停</button><button id="finish" class="button primary hidden">完成记录</button></div>
+    </div>
+  </section>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+'use strict';
+const path = require('node:path');
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const root = path.resolve(__dirname, '..');
+const playwrightPath = process.env.INMOMENT_PLAYWRIGHT || 'playwright';
+const { _electron } = require(playwrightPath);
+const { NativeBridge } = require('../src/main/native-bridge.cjs');
+const dataDir = path.join(root, '.local', `smoke-${Date.now()}`);
+const output = path.join(root, 'test-results'); fs.mkdirSync(output, { recursive: true });
+const env = { ...process.env, INMOMENT_DATA_DIR: dataDir, INMOMENT_DISABLE_NETWORK: '1', INMOMENT_SMOKE: '1' }; delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
+if (process.env.INMOMENT_SMOKE_REQUIRE_ASR !== '1') env.INMOMENT_ASR_DIR = path.join(dataDir, 'disabled-asr');
+let application, native;
+async function waitForValue(read, accepts, description, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
+  do { const value = await read(); if (accepts(value)) return value; await new Promise(resolve => setTimeout(resolve, 75)); } while (Date.now() < deadline);
+  throw new Error(`Timed out waiting for ${description}`);
+}
+(async () => {
+  const portable = process.env.INMOMENT_SMOKE_EXECUTABLE;
+  // An existing custom fixture must survive application startup byte-for-byte.
+  fs.mkdirSync(dataDir, { recursive: true });
+  const settingsPath = path.join(dataDir, 'settings.json');
+  const existingSettings = JSON.stringify({ previewDelayMs: 700, thresholdMs: 1650, captureDelayMs: 100, menuDelayMs: 200, keyboardTrigger: 'F9', inputEnabled: true, captureScreenshots: true, excludedApps: ['inert-private-app'], cloudEnabled: false, autoTitleEnabled: false, model: 'deepseek-flash', apiKeyEncrypted: '' }, null, 2);
+  fs.writeFileSync(settingsPath, existingSettings);
+  application = await _electron.launch({ executablePath: portable || require('electron'), args: [...(portable ? [] : [root]), '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'], cwd: root, env, timeout: 30000 });
+  await application.firstWindow();
+  await application.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/renderer/')); if (window) window.show(); });
+  let page = application.windows().find(window => window.url().includes('/renderer/'));
+  if (!page) page = await application.waitForEvent('window', { predicate: window => window.url().includes('/renderer/'), timeout: 10000 });
+  console.log('Desktop renderer connected.');
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.waitForSelector('#record-list .empty-state', { state: 'attached' });
+  await page.screenshot({ path: path.join(output, 'inmoment-empty.png') });
+  const boot = await page.evaluate(() => window.inmoment.invoke('app:bootstrap'));
+  assert.equal(boot.records.length, 0); assert.equal(boot.settings.hasApiKey, false); assert.equal(boot.settings.networkDisabled, true);
+  assert.equal(boot.settings.thresholdMs, 1650); assert.equal(boot.settings.keyboardTrigger, 'F9');
+  assert.equal(fs.readFileSync(settingsPath, 'utf8'), existingSettings, 'launching an updated app must not rewrite existing settings');
+  await application.evaluate(({ shell }) => {
+    globalThis.__inmomentSmokeRevealed = [];
+    shell.showItemInFolder = filename => globalThis.__inmomentSmokeRevealed.push(filename);
+  });
+  async function answerDialog(label) {
+    await page.locator('#confirm-dialog').waitFor({ state: 'visible' });
+    await page.locator('#confirm-actions').getByRole('button', { name: label, exact: true }).click();
+    await waitForValue(() => page.locator('#confirm-dialog').evaluate(element => element.open), value => !value, 'styled confirmation close');
+  }
+  const chrome = await application.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/renderer/')); const recorder = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/overlay/')); return { overlayFocusable: recorder.isFocusable(), controls: Boolean(window.getTitleBarOverlay?.()) }; });
+  assert.equal(chrome.overlayFocusable, false);
+  await page.waitForSelector('.app-titlebar');
+  await page.evaluate(() => window.inmoment.invoke('window:toggleMaximize'));
+  assert.equal((await page.evaluate(() => window.inmoment.invoke('window:state'))).maximized, true);
+  await page.evaluate(() => window.inmoment.invoke('window:toggleMaximize'));
+  if (process.env.INMOMENT_SMOKE_REQUIRE_ASR === '1') assert.equal(boot.capabilities.offlineASR.available, true);
+  await page.click('[data-view="settings"]');
+  await page.locator('#threshold-input').evaluate(element => { const advanced = element.closest('details'); if (advanced) advanced.open = true; });
+  await page.fill('#preview-delay-input', '1000'); await page.fill('#threshold-input', '1500');
+  await page.fill('#capture-delay-input', '0'); await page.fill('#menu-delay-input', '1000');
+  await page.selectOption('#keyboard-trigger-input', 'F8');
+  assert.match(await page.locator('#timing-timeline').textContent(), /2500 ms/);
+  await page.locator('.timing-card').screenshot({ path: path.join(output, 'inmoment-timing-settings.png') });
+  await page.click('#settings-form button[type="submit"]');
+  await waitForValue(() => page.evaluate(() => window.inmoment.invoke('settings:get')), value => value.previewDelayMs === 1000 && value.thresholdMs === 1500 && value.menuDelayMs === 1000 && value.keyboardTrigger === 'F8', 'saved timing settings');
+  await page.click('#reset-timing');
+  const beforeResetSave = await page.evaluate(() => window.inmoment.invoke('settings:get')); assert.equal(beforeResetSave.keyboardTrigger, 'F8', 'reset must edit the form without applying it');
+  await page.click('#settings-form button[type="submit"]');
+  await waitForValue(() => page.evaluate(() => window.inmoment.invoke('settings:get')), value => value.previewDelayMs === 0 && value.thresholdMs === 550 && value.menuDelayMs === 0 && value.keyboardTrigger === 'none', 'saved default timing');
+  const beforeReset = await page.evaluate(() => window.inmoment.invoke('settings:get'));
+  await page.click('#reset-settings');
+  await page.locator('#confirm-dialog').waitFor({ state: 'visible' });
+  await page.screenshot({ path: path.join(output, 'inmoment-unified-confirmation.png') });
+  await answerDialog('取消');
+  assert.deepEqual(await page.evaluate(() => window.inmoment.invoke('settings:get')), beforeReset, 'cancelling full reset must preserve saved settings');
+  await page.click('#reset-settings');
+  await answerDialog('恢复默认');
+  await waitForValue(() => page.evaluate(() => window.inmoment.invoke('settings:get')), value => value.excludedApps.length === 0 && !value.cloudEnabled && !value.autoTitleEnabled, 'explicit fixture reset');
+  await page.click('#primary-group-navigation [data-library-group-id="uncategorized"]');
+  const handle = await application.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find(item => item.getTitle().includes('灵感现场')); window.show(); const buffer = window.getNativeWindowHandle(); return { hwnd: buffer.readBigUInt64LE().toString(), pid: process.pid }; });
+  native = new NativeBridge(path.join(root, 'build/native/InMoment.Native.exe')).start();
+  try {
+    const captured = await native.request('captureWindow', { hwnd: handle.hwnd, outputPath: path.join(output, 'owned-window-capture.png') }, 8000);
+    assert.ok(captured.width > 0 && captured.height > 0); console.log('Owned test-window capture passed.');
+  } finally { await native.close(); native = null; }
+  const syntheticNative = (name, data) => application.evaluate((_electron, event) => globalThis.__inmomentSmokeNativeEvent(event.name, event.data), { name, data });
+  const overlay = application.windows().find(window => window.url().includes('/overlay/'));
+  assert.ok(overlay);
+  const topic = await page.evaluate(() => window.inmoment.invoke('topics:create', { name: '合成验证主题' }));
+  await syntheticNative('holdPreviewStart', { thresholdMs: 1000, startedAt: new Date().toISOString(), trigger: 'F8' });
+  await waitForValue(() => overlay.locator('body').getAttribute('data-mode'), value => value === 'progress', 'hold progress');
+  await new Promise(resolve => setTimeout(resolve, 250));
+  const progress = await overlay.evaluate(() => ({ width: document.querySelector('#hold-progress').getBoundingClientRect().width, height: document.querySelector('#hold-progress').getBoundingClientRect().height, value: Number(document.querySelector('#hold-progress').getAttribute('aria-valuenow')) }));
+  assert.ok(progress.width > progress.height * 5); assert.ok(progress.value > 0 && progress.value < 100);
+  assert.match(await overlay.locator('#hold-progress').getAttribute('aria-label'), /F8/);
+  await overlay.screenshot({ path: path.join(output, 'inmoment-hold-progress.png') });
+  await syntheticNative('holdPreviewCancel', { reason: 'released' });
+  await waitForValue(() => overlay.locator('body').getAttribute('data-mode'), value => value === 'hidden', 'short hold cancellation');
+  const short = await page.evaluate(() => window.inmoment.invoke('app:bootstrap')); assert.equal(short.drafts.length, 0); assert.equal(short.session.active, false);
+  await syntheticNative('holdPreviewStart', { thresholdMs: 500, startedAt: new Date().toISOString() });
+  await new Promise(resolve => setTimeout(resolve, 550));
+  await syntheticNative('holdStart', { source: { ...handle, processName: 'InMoment', title: 'Owned synthetic input test window' } });
+  const waitForSession = state => waitForValue(() => page.evaluate(() => window.inmoment.invoke('app:bootstrap')), value => value.session.state === state, `session ${state}`);
+  await waitForSession('recording');
+  await new Promise(resolve => setTimeout(resolve, 750));
+  await syntheticNative('holdEnd', { releasedAt: new Date().toISOString() });
+  await waitForSession('paused');
+  await waitForValue(() => overlay.locator('body').getAttribute('data-mode'), value => value === 'card', 'progress expansion into capture card');
+  await syntheticNative('holdPreviewCancel', { reason: 'disabled' });
+  assert.equal(await overlay.locator('body').getAttribute('data-mode'), 'card');
+  if (overlay) await overlay.screenshot({ path: path.join(output, 'inmoment-paused.png') });
+  await application.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/renderer/')); window.focus(); });
+  await overlay.locator('#draft-topics-label').click();
+  await overlay.getByRole('checkbox', { name: topic.name, exact: true }).check();
+  await waitForValue(() => page.evaluate(() => window.inmoment.invoke('app:bootstrap')), value => value.session.topicIds.includes(topic.id), 'mouse-only draft topic selection');
+  await overlay.locator('#continue').click();
+  await waitForSession('recording');
+  assert.equal(await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/overlay/')).isFocused()), false);
+  assert.equal(await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/renderer/')).isFocused()), true, 'recording controls must preserve source-window focus');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await page.evaluate(() => window.inmoment.invoke('draft:pause'));
+  const record = await page.evaluate(() => window.inmoment.invoke('draft:finish'));
+  assert.equal(record.audioSegments.length, 2); assert.ok(record.audioSegments.every(segment => segment.durationMs > 0));
+  await page.evaluate(record => window.inmoment.invoke('records:update', { id: record.id, title: '合成音频验证记录', transcriptSegments: record.audioSegments.map((segment, index) => ({ id: segment.id, text: index === 0 ? '这是用于本地验证的文字，不是用户录音。记录收藏当时的理由。' : '第二段合成音频，用于验证分段归属。' })), task: '验证本地保存与检索' }), record);
+  if (boot.capabilities.offlineASR?.available) {
+    const updated = await waitForValue(() => page.evaluate(id => window.inmoment.invoke('records:get', { id }), record.id), item => item.jobs.some(job => job.kind === 'transcribe' && job.status !== 'processing'), 'offline transcription completion', 30000);
+    assert.equal(updated.audioSegments[0].transcript, '这是用于本地验证的文字，不是用户录音。记录收藏当时的理由。');
+    assert.equal(updated.audioSegments[1].transcript, '第二段合成音频，用于验证分段归属。');
+    assert.equal(updated.jobs.find(job => job.kind === 'transcribe').status, 'not-applied');
+    assert.ok(updated.transcriptionMetrics.durationMs > 0);
+    console.log('Real offline worker completed; user-edited segment text was preserved.');
+  }
+  await page.evaluate(({ id, topicId }) => window.inmoment.invoke('records:setTopics', { id, topicIds: [topicId] }), { id: record.id, topicId: topic.id });
+  const matches = await page.evaluate(() => window.inmoment.invoke('records:search', { query: '收藏' })); assert.equal(matches.records.length, 1);
+  const scoped = await page.evaluate(topicId => window.inmoment.invoke('records:list', { filters: { topicIds: [topicId] } }), topic.id); assert.equal(scoped.total, 1);
+  await page.evaluate(() => window.inmoment.invoke('app:bootstrap'));
+  await page.locator('#primary-group-navigation [data-library-group-id="' + topic.id + '"]').click();
+  await page.locator('.record-open').first().click();
+  await page.waitForSelector('audio', { state: 'attached' });
+  await page.click('.screenshot-thumbnail-button');
+  await page.locator('#screenshot-full-image').waitFor({ state: 'visible' });
+  assert.match(await page.locator('#screenshot-dimensions').textContent(), /像素.*PNG 原图/);
+  const originalImage = await page.locator('#screenshot-full-image').getAttribute('src'); assert.equal(originalImage, record.screenshotUrl);
+  await page.click('#screenshot-actual-size');
+  assert.equal(await page.locator('#screenshot-zoom-label').textContent(), '100%');
+  await page.click('#screenshot-zoom-in'); assert.equal(await page.locator('#screenshot-zoom-label').textContent(), '125%');
+  const viewport = await page.locator('#screenshot-viewport').boundingBox();
+  await page.mouse.move(viewport.x + viewport.width / 2, viewport.y + viewport.height / 2);
+  await page.mouse.wheel(0, -240);
+  await waitForValue(() => page.locator('#screenshot-zoom-label').textContent(), value => Number.parseInt(value, 10) > 125, 'mouse wheel zoom');
+  const beforePan = await page.locator('#screenshot-viewport').evaluate(element => element.scrollLeft);
+  await page.mouse.down(); await page.mouse.move(viewport.x + viewport.width / 2 - 90, viewport.y + viewport.height / 2 - 40, { steps: 8 }); await page.mouse.up();
+  const afterPan = await page.locator('#screenshot-viewport').evaluate(element => element.scrollLeft); assert(afterPan > beforePan, 'dragging must pan the enlarged original image');
+  await page.click('#screenshot-reveal');
+  const revealed = await application.evaluate(() => globalThis.__inmomentSmokeRevealed);
+  assert.equal(revealed.length, 1); assert.equal(fs.statSync(revealed[0]).isFile(), true); assert.ok(revealed[0].startsWith(dataDir));
+  await page.click('#screenshot-fit');
+  await page.screenshot({ path: path.join(output, 'inmoment-original-image-viewer.png') });
+  await page.keyboard.press('Escape');
+  await waitForValue(() => page.locator('#screenshot-dialog').evaluate(element => element.open), value => !value, 'original-image viewer close');
+  assert.equal(await page.locator('#screenshot-full-image').getAttribute('src'), null);
+  await page.screenshot({ path: path.join(output, 'inmoment-record.png') });
+  const audioOK = await page.evaluate(async () => { const audio = document.querySelector('audio'); await new Promise((resolve, reject) => { if (audio.readyState >= 1) return resolve(); audio.addEventListener('loadedmetadata', resolve, { once: true }); audio.addEventListener('error', reject, { once: true }); setTimeout(() => reject(new Error('audio metadata timeout')), 5000); }); return Number.isFinite(audio.duration) && audio.duration > 0; });
+  assert.equal(audioOK, true);
+  await assert.rejects(page.evaluate(id => window.inmoment.invoke('records:organize', { id }), record.id), /禁用/);
+  await assert.rejects(page.evaluate(() => window.inmoment.invoke('records:aiSearch', { query: '找回保存联想的方法' })), /禁用/);
+  await assert.rejects(page.evaluate(() => window.inmoment.invoke('library:duplicates')), /禁用/);
+  await page.evaluate(id => window.inmoment.invoke('records:continueThought', { id }), record.id);
+  const thoughtSession = await waitForSession('recording');
+  await new Promise(resolve => setTimeout(resolve, 250));
+  await page.evaluate(() => window.inmoment.invoke('draft:pause'));
+  const thought = await page.evaluate(() => window.inmoment.invoke('draft:finish'));
+  assert.notEqual(thought.id, record.id); assert.equal(thought.parentId, record.id); assert.equal(thought.screenshotUrl, ''); assert.equal(thought.topicIds[0], topic.id);
+  assert.equal(thoughtSession.session.mode, 'manual');
+  await page.evaluate(id => window.inmoment.invoke('records:delete', { id }), thought.id);
+  await page.locator('.record-actions-toggle').first().click();
+  await page.locator('.context-menu [data-menu-id="delete"]').click();
+  await page.locator('.confirm-popover [data-confirm-action="cancel"]').click();
+  assert.equal((await page.evaluate(() => window.inmoment.invoke('records:list'))).total, 1);
+  await page.locator('.record-actions-toggle').first().click();
+  await page.locator('.context-menu [data-menu-id="delete"]').click();
+  await page.locator('.confirm-popover [data-confirm-action="confirm"]').waitFor();
+  await page.screenshot({ path: path.join(output, 'inmoment-quick-delete.png') });
+  await page.locator('.confirm-popover [data-confirm-action="confirm"]').click();
+  await waitForValue(() => page.evaluate(() => window.inmoment.invoke('records:list')), result => result.total === 0, 'quick inbox deletion');
+  assert.equal((await page.evaluate(() => window.inmoment.invoke('records:list'))).records.length, 0);
+  await page.evaluate(() => window.inmoment.invoke('draft:startManual'));
+  await waitForSession('recording');
+  await page.evaluate(() => window.inmoment.invoke('draft:discard'));
+  const final = await page.evaluate(() => window.inmoment.invoke('app:bootstrap')); assert.equal(final.records.length, 0); assert.equal(final.drafts.length, 0);
+  const guidePath = path.join(portable ? path.dirname(portable) : root, 'docs/manual-test-scenarios.html');
+  if (fs.existsSync(guidePath)) {
+    await application.evaluate(async ({ BrowserWindow }, filename) => { const preview = new BrowserWindow({ show: true, width: 1150, height: 900, title: 'Synthetic manual preview', webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } }); await preview.loadFile(filename); }, guidePath);
+    const manual = application.windows().find(window => window.url().includes('manual-test-scenarios.html'));
+    assert.equal(await manual.locator('article').count(), 23);
+    await manual.screenshot({ path: path.join(output, 'manual-test-scenarios.png') });
+    await manual.close();
+  }
+  assert.equal(errors.length, 0, errors.join('\n'));
+  console.log('Electron smoke passed: styled authorization/reset/delete, integrated chrome controls, non-activating overlay, 23-case manual, preserved settings, topics, continuation, image wheel/drag, segmented audio, API lock and deletion. Synthetic microphone and owned window only.');
+})().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(async () => {
+  if (native) await native.close();
+  if (application) {
+    let timer;
+    try { await Promise.race([application.close(), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Smoke app close timeout')), 10000); })]); console.log('Clean shutdown passed.'); }
+    catch { application.process().kill(); }
+    finally { clearTimeout(timer); }
+  }
+});

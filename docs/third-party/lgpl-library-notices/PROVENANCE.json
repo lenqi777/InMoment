@@ -1,0 +1,229 @@
+{
+  "preparedAt": "2026-10-17",
+  "method": "Original bytes extracted from verified upstream source archives; no downloaded code executed.",
+  "files": [
+    {
+      "file": "libvips-8.17.3-LICENSE.txt",
+      "component": "libvips",
+      "version": "8.17.3",
+      "source": "https://github.com/libvips/libvips/releases/download/v8.17.3/vips-8.17.3.tar.xz",
+      "archive": "vips-8.17.3.tar.xz",
+      "archiveSHA256": "41e9a1439cd57dcc6d4435a085e2cfe181d9da1962fa84a484f09e8b536e4b77",
+      "entry": "vips-8.17.3/LICENSE",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "file": "fribidi-1.0.16-AUTHORS.txt",
+      "component": "fribidi",
+      "version": "1.0.16",
+      "source": "https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz",
+      "archive": "fribidi-1.0.16.tar.xz",
+      "archiveSHA256": "1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c",
+      "entry": "fribidi-1.0.16/AUTHORS",
+      "bytes": 1640,
+      "sha256": "cb173f55c9514c8f38f4647ac3fedd5f8611358d331e65ab955da931e826861c"
+    },
+    {
+      "file": "fribidi-1.0.16-COPYING.txt",
+      "component": "fribidi",
+      "version": "1.0.16",
+      "source": "https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz",
+      "archive": "fribidi-1.0.16.tar.xz",
+      "archiveSHA256": "1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c",
+      "entry": "fribidi-1.0.16/COPYING",
+      "bytes": 26440,
+      "sha256": "32434afcc8666ba060e111d715bfdb6c2d5dd8a35fa4d3ab8ad67d8f850d2f2b"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_Apache-2.0.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/Apache-2.0.txt",
+      "bytes": 10280,
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_CC0-1.0.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/CC0-1.0.txt",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_GPL-2.0-or-later.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/GPL-2.0-or-later.txt",
+      "bytes": 17337,
+      "sha256": "aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_LGPL-2.1-only.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/LGPL-2.1-only.txt",
+      "bytes": 25967,
+      "sha256": "fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_LGPL-2.1-or-later.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/LGPL-2.1-or-later.txt",
+      "bytes": 25967,
+      "sha256": "fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_LLVM-exception.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/LLVM-exception.txt",
+      "bytes": 919,
+      "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_LicenseRef-old-glib-tests.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/LicenseRef-old-glib-tests.txt",
+      "bytes": 841,
+      "sha256": "fb261b2d5dbe76c4850f90da763210bc385e52428df6bbfd7b06295ac8a32914"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_MIT.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/MIT.txt",
+      "bytes": 1078,
+      "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+    },
+    {
+      "file": "glib-2.86.1-LICENSES_MPL-1.1.txt.txt",
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/LICENSES/MPL-1.1.txt",
+      "bytes": 23669,
+      "sha256": "6214f8b1300bb9f37b16ebc146f8f61af0187e0025042ff95c8b3030744a8795"
+    },
+    {
+      "file": "libexif-0.6.25-AUTHORS.txt",
+      "component": "libexif",
+      "version": "0.6.25",
+      "source": "https://github.com/libexif/libexif/releases/download/v0.6.25/libexif-0.6.25.tar.xz",
+      "archive": "libexif-0.6.25.tar.xz",
+      "archiveSHA256": "62f74cf3bf673a6e24d2de68f6741643718541f83aca5947e76e3978c25dce83",
+      "entry": "libexif-0.6.25/AUTHORS",
+      "bytes": 240,
+      "sha256": "a19ef6f43014fc57829658087d0c2bf59d97482e015cf553d7a68124603cbc44"
+    },
+    {
+      "file": "libexif-0.6.25-COPYING.txt",
+      "component": "libexif",
+      "version": "0.6.25",
+      "source": "https://github.com/libexif/libexif/releases/download/v0.6.25/libexif-0.6.25.tar.xz",
+      "archive": "libexif-0.6.25.tar.xz",
+      "archiveSHA256": "62f74cf3bf673a6e24d2de68f6741643718541f83aca5947e76e3978c25dce83",
+      "entry": "libexif-0.6.25/COPYING",
+      "bytes": 26434,
+      "sha256": "36b6d3fa47916943fd5fec313c584784946047ec1337a78b440e5992cb595f89"
+    },
+    {
+      "file": "libheif-1.20.2-COPYING.txt",
+      "component": "libheif",
+      "version": "1.20.2",
+      "source": "https://github.com/strukturag/libheif/releases/download/v1.20.2/libheif-1.20.2.tar.gz",
+      "archive": "libheif-1.20.2.tar.gz",
+      "archiveSHA256": "68ac9084243004e0ef3633f184eeae85d615fe7e4444373a0a21cebccae9d12a",
+      "entry": "libheif-1.20.2/COPYING",
+      "bytes": 44366,
+      "sha256": "fa81ce652315b013359d6e8e4744335f31a50c7c192907176d3632f78a3b4596"
+    },
+    {
+      "file": "librsvg-2.61.2-AUTHORS.txt",
+      "component": "librsvg",
+      "version": "2.61.2",
+      "source": "https://download.gnome.org/sources/librsvg/2.61/librsvg-2.61.2.tar.xz",
+      "archive": "librsvg-2.61.2.tar.xz",
+      "archiveSHA256": "4644d83623dd61cc4479c2b3c372e1da2b281552ebc90035c8d1ac502eb1dc00",
+      "entry": "librsvg-2.61.2/AUTHORS",
+      "bytes": 1798,
+      "sha256": "14e765b9c1097d93f4b842a6ad23172b530cc00dfe7a5aae1b9afefdca54531b"
+    },
+    {
+      "file": "librsvg-2.61.2-COPYING.LIB.txt",
+      "component": "librsvg",
+      "version": "2.61.2",
+      "source": "https://download.gnome.org/sources/librsvg/2.61/librsvg-2.61.2.tar.xz",
+      "archive": "librsvg-2.61.2.tar.xz",
+      "archiveSHA256": "4644d83623dd61cc4479c2b3c372e1da2b281552ebc90035c8d1ac502eb1dc00",
+      "entry": "librsvg-2.61.2/COPYING.LIB",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "file": "pango-1.57.0-COPYING.txt",
+      "component": "pango",
+      "version": "1.57.0",
+      "source": "https://download.gnome.org/sources/pango/1.57/pango-1.57.0.tar.xz",
+      "archive": "pango-1.57.0.tar.xz",
+      "archiveSHA256": "890640c841dae77d3ae3d8fe8953784b930fa241b17423e6120c7bfdf8b891e7",
+      "entry": "pango-1.57.0/COPYING",
+      "bytes": 25292,
+      "sha256": "d245807f90032872d1438d741ed21e2490e1175dc8aa3afa5ddb6c8e529b58e5"
+    },
+    {
+      "file": "proxy-libintl-0.5-COPYING.txt",
+      "component": "proxy-libintl",
+      "version": "0.5",
+      "source": "https://github.com/frida/proxy-libintl/archive/0.5.tar.gz",
+      "archive": "proxy-libintl-0.5.tar.gz",
+      "archiveSHA256": "f7a1cbd7579baaf575c66f9d99fb6295e9b0684a28b095967cfda17857595303",
+      "entry": "proxy-libintl-0.5/COPYING",
+      "bytes": 25292,
+      "sha256": "d245807f90032872d1438d741ed21e2490e1175dc8aa3afa5ddb6c8e529b58e5"
+    }
+  ],
+  "emptyUpstreamEntries": [
+    {
+      "component": "glib",
+      "version": "2.86.1",
+      "source": "https://download.gnome.org/sources/glib/2.86/glib-2.86.1.tar.xz",
+      "archive": "glib-2.86.1.tar.xz",
+      "archiveSHA256": "119d1708ca022556d6d2989ee90ad1b82bd9c0d1667e066944a6d0020e2d5e57",
+      "entry": "glib-2.86.1/COPYING",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "upstream-empty-entry-not-copied",
+      "note": "Original source archive contains an empty COPYING entry; other original license texts are supplied. No empty license artifact is published."
+    }
+  ]
+}

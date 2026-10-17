@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="InMoment 是我从日常阅读场景出发做的一款 Windows 灵感记录工具。这份作品集介绍产品思路、交互设计与版本迭代。">
+  <title>InMoment｜AI 产品经理项目案例</title>
+  <style>
+    :root{--ink:#171a18;--muted:#616763;--green:#2f6d42;--green-light:#edf6ee;--line:#e2e7e3;--soft:#f6f8f6;--max:1180px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:#fff;color:var(--ink);font:16px/1.75 "Segoe UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--green);text-underline-offset:4px}button,input,video{font:inherit}button{cursor:pointer}button,a{-webkit-tap-highlight-color:transparent}a:focus-visible,button:focus-visible,video:focus-visible{outline:3px solid #5b9a70;outline-offset:5px}img{display:block;max-width:100%;height:auto}h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.3;letter-spacing:-.035em}h2{font-size:clamp(25px,3.2vw,38px)}h3{font-size:20px}p+p{margin-top:12px}.shell{width:min(var(--max),calc(100% - 64px));margin:auto}.skip{position:fixed;top:-80px;left:16px;z-index:99;padding:10px 16px;background:#fff}.skip:focus{top:10px}.topbar{position:sticky;top:0;z-index:20;background:#ffffffed;border-bottom:1px solid var(--line);backdrop-filter:blur(16px)}.topbar-inner{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:11px;color:var(--ink);text-decoration:none;font-weight:700;font-size:20px}.brand img{width:33px;height:33px}.brand small{font-size:12px;font-weight:400;color:var(--muted);letter-spacing:.04em;padding-left:8px;border-left:1px solid var(--line)}nav{display:flex;gap:25px;align-items:center}nav a{font-size:14px;text-decoration:none;color:var(--muted)}nav a:hover{color:var(--green)}.hero{padding:78px 0 46px}.eyebrow{color:var(--green);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:9px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}.hero h1{max-width:850px;margin-top:24px;font-size:clamp(36px,5.3vw,65px);font-weight:700;line-height:1.24}.hero h1 em{color:var(--green);font-style:normal}.lead{max-width:730px;color:var(--muted);font-size:18px;margin-top:24px}.hero-explainer{max-width:710px;color:var(--muted);font-size:14px;line-height:1.85;margin-top:13px}.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:46px;padding:10px 20px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;background:#fff;color:var(--ink)}.button.primary{background:var(--green);color:#fff;border-color:var(--green)}.button:hover{border-color:var(--green)}.metadata{display:flex;gap:0;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:22px;margin-top:39px}.metadata div{padding-right:32px;margin-right:32px;border-right:1px solid var(--line)}.metadata div:last-child{border-right:0;margin-right:0}.metadata dt{font-size:12px;color:var(--muted)}.metadata dd{margin:3px 0 0;font-size:14px;font-weight:600}.section{padding:54px 0;border-top:1px solid var(--line)}.section-label{font-size:12px;letter-spacing:.12em;color:var(--green);font-weight:700;margin-bottom:12px}.section-intro{max-width:720px;color:var(--muted);margin-top:16px}.section-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:25px}.section-header .section-intro{max-width:510px}.quiet-link{font-size:14px;white-space:nowrap}.notice{font-size:13px;color:var(--muted);padding:12px 16px;border-left:3px solid #75a782;background:var(--soft);margin-top:18px}.gallery{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--soft)}.gallery-top{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--line);gap:12px;background:#fff}.gallery-top span{font-size:12px;color:var(--muted)}.gallery-top a{font-size:12px;text-decoration:none}.screenshot-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}.screenshot-tabs button{padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:13px;color:var(--muted)}.screenshot-tabs button[aria-selected="true"]{background:var(--green-light);border-color:#a8c9ae;color:var(--green);font-weight:600}.screen-figure{margin:0}.screen-image-wrap{padding:12px;display:flex;align-items:center;justify-content:center}.screen-image-wrap img{width:100%;border:1px solid #e8eae8;border-radius:5px;background:#fff;aspect-ratio:3/2;object-fit:contain}.screen-caption{padding:16px 20px 19px;background:#fff;border-top:1px solid var(--line)}.screen-caption strong{display:block;font-size:15px}.screen-caption p{font-size:14px;color:var(--muted);margin-top:4px}.two-col{display:grid;grid-template-columns:1.05fr 1fr;gap:35px}.role-box{border:1px solid var(--line);padding:26px;border-radius:10px}.role-box h3{font-size:18px}.role-box ul,.evidence-card ul{margin:16px 0 0;padding-left:20px;color:var(--muted);font-size:14px}.role-box li+li,.evidence-card li+li{margin-top:10px}.role-box.secondary{background:var(--soft)}.decisions{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.decision{padding:25px 23px;border:1px solid var(--line);border-radius:10px;min-width:0}.decision-number{color:var(--green);font-size:12px;font-weight:700;display:block;margin-bottom:23px;letter-spacing:.1em}.decision h3{font-size:20px}.decision p{font-size:14px;color:var(--muted);margin-top:15px}.decision .tradeoff{padding-top:15px;border-top:1px solid var(--line);font-size:13px}.decision .tradeoff b{color:var(--ink);font-weight:600}.timeline-layout{display:grid;grid-template-columns:1.05fr 1fr;gap:26px}.timeline-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-content:start}.timeline-button{min-height:78px;border:1px solid var(--line);border-radius:8px;background:#fff;text-align:left;padding:12px 14px;min-width:0}.timeline-button b{display:block;font-size:15px;color:var(--ink)}.timeline-button span{display:block;font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}.timeline-button[aria-expanded="true"]{border-color:#94bd9d;background:var(--green-light)}.timeline-detail{border:1px solid var(--line);border-radius:10px;padding:28px;background:var(--soft);min-height:295px}.timeline-detail .version-tag{display:inline-block;color:var(--green);font-weight:700;font-size:13px;letter-spacing:.04em;margin-bottom:13px}.timeline-detail h3{font-size:24px}.timeline-detail p{font-size:14px;color:var(--muted);margin-top:15px}.timeline-detail .proof{font-size:12px;padding-top:15px;border-top:1px solid var(--line)}.video-layout{display:grid;grid-template-columns:1.6fr 1fr;gap:26px;align-items:center}.video-box{background:#151a17;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}.video-box video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;background:#151a17}.video-box video::-webkit-media-controls-panel{font-family:inherit}.video-caption{font-size:12px;padding:10px 14px;background:var(--soft);color:var(--muted)}.video-note h3{font-size:23px}.video-note p{font-size:14px;color:var(--muted);margin-top:15px}.video-note .button{margin-top:22px}.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.evidence-card{padding:26px;border:1px solid var(--line);border-radius:10px}.evidence-card h3{font-size:20px}.evidence-label{font-size:11px;color:var(--green);font-weight:700;letter-spacing:.12em;margin-bottom:12px}.evidence-card.pending{background:var(--soft)}.materials{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.material{padding:20px;display:block;border:1px solid var(--line);border-radius:9px;text-decoration:none;color:var(--ink);min-width:0}.material:hover{border-color:#86af90;background:#fbfdfb}.material span{font-size:12px;color:var(--green)}.material strong{display:block;font-size:16px;margin:6px 0}.material p{font-size:13px;color:var(--muted);line-height:1.7}.material .arrow{float:right;font-size:17px;color:var(--green)}footer{border-top:1px solid var(--line);padding:25px 0 35px;color:var(--muted);font-size:12px}.footer-inner{display:flex;justify-content:space-between;gap:18px}footer a{color:var(--muted)}[hidden]{display:none!important}
+    .prd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.prd-excerpt{padding:25px 23px;border:1px solid var(--line);border-radius:10px;min-width:0}.prd-excerpt h3{font-size:20px}.prd-excerpt p{font-size:14px;color:var(--muted);margin-top:14px}.prd-excerpt ul{margin:18px 0 0;padding:16px 0 0 19px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.prd-excerpt li+li{margin-top:9px}.prd-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+    @media(max-width:900px){.shell{width:calc(100% - 40px)}nav{gap:16px}.brand small{display:none}.hero{padding-top:48px}.decisions,.prd-grid{grid-template-columns:1fr}.decision{display:grid;grid-template-columns:38px 1fr;column-gap:10px;padding:23px}.decision-number{grid-row:1/4;margin:4px 0 0}.decision h3,.decision p{grid-column:2}.decision p{margin-top:10px}.two-col,.timeline-layout{grid-template-columns:1fr;gap:17px}.timeline-buttons{grid-template-columns:repeat(6,1fr)}.timeline-detail{min-height:240px}.video-layout{grid-template-columns:1fr}.materials{grid-template-columns:repeat(2,1fr)}.section{padding:42px 0}.section-header{align-items:flex-start;flex-direction:column;gap:12px}}
+    @media(max-width:560px){.shell{width:calc(100% - 32px)}.topbar-inner{min-height:63px;gap:10px}.brand{font-size:18px}.brand img{width:28px;height:28px}nav{gap:15px}nav a{font-size:12px}nav a:nth-child(2),nav a:nth-child(3){display:none}.hero{padding:36px 0 30px}.hero h1{font-size:36px;margin-top:20px;letter-spacing:-.045em}.lead{font-size:15px;line-height:1.85;margin-top:21px}.hero-explainer{font-size:13px;margin-top:11px}.eyebrow{font-size:10px;letter-spacing:.09em}.metadata{gap:13px 0;margin-top:28px;padding-top:18px}.metadata div{padding-right:17px;margin-right:17px}.metadata div:last-child{width:100%}.metadata dt{font-size:11px}.metadata dd{font-size:13px}.hero-actions{margin-top:24px;gap:9px}.button{padding:9px 15px;min-height:43px;font-size:13px}.section{padding:34px 0}.section-intro{font-size:14px}.section-label{font-size:10px}.section-header{margin-bottom:20px}.gallery-top{padding:10px 12px}.gallery-top span{font-size:10px}.gallery-top a{font-size:11px}.screenshot-tabs{gap:6px}.screenshot-tabs button{padding:6px 9px;font-size:11px}.screen-image-wrap{padding:5px}.screen-caption{padding:13px}.screen-caption p{font-size:12px}.screen-caption strong{font-size:14px}.notice{font-size:12px;padding:11px 12px}.role-box,.evidence-card{padding:21px}.role-box ul,.evidence-card ul{font-size:13px}.decision{padding:20px 17px;grid-template-columns:28px 1fr;column-gap:6px}.decision h3{font-size:19px}.decision p{font-size:13px}.decision .tradeoff{font-size:12px}.timeline-buttons{grid-template-columns:repeat(3,1fr);gap:7px}.timeline-button{min-height:71px;padding:10px}.timeline-button b{font-size:14px}.timeline-button span{font-size:10px}.timeline-detail{padding:22px}.timeline-detail h3{font-size:22px}.timeline-detail p{font-size:13px}.evidence-grid,.materials{grid-template-columns:1fr}.material{padding:18px}.footer-inner{flex-direction:column;gap:8px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media print{.topbar{position:static}.hero{padding-top:35px}nav,.hero-actions,.screenshot-tabs,.timeline-buttons,.video-box{display:none}.section{break-inside:avoid;padding:24px 0}.shell{width:100%}.timeline-layout,.video-layout{display:block}.timeline-detail{min-height:0}.lead{font-size:15px}body{font-size:13px}.section h2{font-size:26px}.materials{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#main"><img src="../assets/inmoment-icon.png" width="33" height="33" alt="">InMoment <small>我的 AI 产品实践</small></a>
+      <nav aria-label="案例导航"><a href="#product">产品</a><a href="#decisions">设计思路</a><a href="#iterations">迭代</a><a href="#materials">项目文档 ↗</a></nav>
+    </div>
+  </header>
+  <main id="main" class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="eyebrow"><span class="dot"></span>AI 应用实践 · Windows 桌面工具 · v0.10.0</div>
+      <h1 id="hero-title">好想法，<br><em>值得留在当下。</em></h1>
+      <p class="lead">不只是记住说了什么，也留下为什么会想到。<br>每一次灵感，都有迹可循。</p>
+      <p class="hero-explainer">阅读或浏览网页时，长按右键即可开始录音，并保存当前窗口截图。之后可以查看录音与截图，再用 AI 生成摘要、整理分组或搜索记录。</p>
+      <div class="hero-actions"><a class="button primary" href="PRODUCT_CASE.md">阅读产品案例 <span aria-hidden="true">↗</span></a><a class="button" href="#demo">看看产品怎么用 <span aria-hidden="true">↓</span></a><a class="button" href="../../README.md">项目 README <span aria-hidden="true">↗</span></a></div>
+      <dl class="metadata"><div><dt>项目形态</dt><dd>已接入 AI 的 Windows 桌面原型</dd></div><div><dt>使用过程</dt><dd>记下来 → 整理 → 找回来</dd></div><div><dt>我的工作</dt><dd>产品设计、体验迭代与验收</dd></div></dl>
+    </section>
+
+    <section id="product" class="section" aria-labelledby="product-title">
+      <div class="section-header"><div><p class="section-label">01 / 产品与交互</p><h2 id="product-title">想到了，先说下来。</h2><p class="section-intro">录音时不需要填写标题或选择分组，新记录可以直接保存。回顾时能查看原文、截图和音频，也可以调用 DeepSeek 生成摘要和分组建议。</p></div><a class="quiet-link" href="DEMO_SCRIPT.md">查看演示脚本 ↗</a></div>
+      <div id="screenshot-tabs" class="screenshot-tabs" role="tablist" aria-label="切换应用截图"></div>
+      <div class="gallery">
+        <div class="gallery-top"><span>InMoment 界面 · 示例资料</span><a id="screen-full" href="../assets/inbox.png" target="_blank" rel="noopener">查看大图 ↗</a></div>
+        <figure class="screen-figure" id="screen-panel" role="tabpanel" aria-labelledby="shot-0">
+          <div class="screen-image-wrap"><img id="screen-image" src="../assets/inbox.png" width="2160" height="1440" alt="InMoment 分组主页，未分类记录以网格卡片显示。"></div>
+          <figcaption class="screen-caption"><strong id="screen-title">没选分组，也能先保存</strong><p id="screen-description">未指定分组的记录保存在“未分类”中，点击卡片即可打开详情。</p></figcaption>
+        </figure>
+      </div>
+      <p class="notice">演示中的记录、摘要和分组为预设示例；网页、设计画布与 PDF 为演示素材，录音使用合成音源。</p>
+    </section>
+
+    <section class="section" aria-labelledby="role-title">
+      <div class="section-header"><div><p class="section-label">02 / 我在项目里做了什么</p><h2 id="role-title">步步雕琢，让想法随手可录。</h2><p class="section-intro">我负责产品方向、录音与整理流程、交互设计和功能验收。代码编写和自动化测试借助 AI 编程助手完成，语音转写、摘要和检索使用现成模型。</p></div></div>
+      <div class="two-col"><article class="role-box"><h3>需求与功能范围</h3><ul><li>最初只想保存阅读时冒出的想法。试用后发现，还需要留下触发想法的页面和当时的表达。</li><li>首个版本选择 Windows 桌面端，设计了长按录音、松开暂停、继续录音和保存的操作。</li><li>语音转写、摘要、分组建议和描述搜索使用 AI；原始音频与转写文字保留，方便核对。</li><li>区分本地处理和云端调用，并为截图参与 AI 整理设置单独授权。</li></ul></article><article class="role-box secondary"><h3>交互调整与检查</h3><ul><li>根据自己的试用记录，调整录音入口、页面布局和操作顺序。</li><li>分组栏与记录列表并排显示，右侧详情区域留出更大的阅读空间。</li><li>列表使用左滑操作，卡片使用“…”菜单；批量管理支持多选、搜索分组和删除确认。</li><li>使用多条记录、多个分组和不同窗口尺寸检查布局，修复标题被挤压或截断等问题。</li></ul></article></div>
+    </section>
+
+    <section id="decisions" class="section" aria-labelledby="decision-title">
+      <div class="section-header"><div><p class="section-label">03 / 几个设计取舍</p><h2 id="decision-title">少一点打断，多一点掌控。</h2><p class="section-intro">录入时尽量减少操作；涉及批量整理和删除时，先显示结果或确认信息。以下是三个主要设计选择。</p></div></div>
+      <div class="decisions"><article class="decision"><span class="decision-number">01</span><h3>归类不急，灵感要紧。</h3><p>要求先选分组会打断记录，因此新内容默认进入“未分类”。长按右键开始录音，松开后暂停，需要补充时再点击“继续”。</p><p class="tradeoff">未分类记录会逐渐积累，因此在回顾页面增加了多选归组和一键整理。</p></article><article class="decision"><span class="decision-number">02</span><h3>各有不同，也能归于一组。</h3><p>只按已有分组归类，可能把不同主题混在一起；每条记录都新建分组，又会产生太多组。因此先逐条生成摘要，再比较这一批记录，提出可以共用的分组。</p><p class="tradeoff">建议按组展示，并列出各组包含的记录。确认前，可以调整分组或取消单条建议。</p></article><article class="decision"><span class="decision-number">03</span><h3>本地先找，云端再排。</h3><p>例如搜索“上个月关于做菜的想法”，先在本地按时间和语义索引筛选候选记录，再交给云端模型排序，无需发送全部记录。</p><p class="tradeoff">代价是本地模型增加安装体积；好处是索引可以复用，每次发送给云端的记录也更少。</p></article></div>
+      <p class="notice">模型分工、请求流程和评测方法见<a href="AI_DESIGN_AND_EVALUATION.md">AI 方案与评测计划</a>里。</p>
+    </section>
+
+    <section id="prd" class="section" aria-labelledby="prd-title">
+      <div class="section-header"><div><p class="section-label">04 / PRD 节选</p><h2 id="prd-title">把每一步，都想清楚。</h2><p class="section-intro">新版 PRD 从用户问题出发，逐项写出用户故事、产品决策和验收条件。这里选取录音、整批整理与阅读归组三组需求，说明操作边界与预期结果。</p></div></div>
+      <div class="prd-grid">
+        <article class="prd-excerpt"><h3>一段想法，可以分几次说完</h3><p>US-01–06、08 · P0。使用者可以停顿后继续表达，所有片段属于同一草稿，最后明确决定保存或丢弃。</p><ul><li>首次录音松开右键暂停；点击“继续”后免按住录音，点击“暂停”才停止。</li><li>仅暂停时可完成，收尾后保存一条记录；重复完成不重复保存。</li><li>丢弃先撤销回调许可，再停止采集并清理；迟到结果不能重建记录。</li></ul></article>
+        <article class="prd-excerpt"><h3>只整理现在这一批</h3><p>US-17–20 · P1。使用者可以控制整理范围与费用，按组检查、修改或取消建议，确认后再归组。</p><ul><li>固定点击时实际显示的记录与版本，最多 100 条；换页不扩大范围。</li><li>先逐条总结，再统一归类，请求最多为本批条数加一次；确认才创建或关联分组。</li><li>取消停止后续请求，保留原始资料和已存摘要；旧版本建议不能覆盖新编辑。</li></ul></article>
+        <article class="prd-excerpt"><h3>浏览简洁，点开读完整</h3><p>US-09–15 · P0，采用建议见 US-19 · P1。使用者按分组、记录、详情连续阅读，也能多选归组、合并或删除分组。</p><ul><li>分组栏与记录栏等宽，列表标题单行；详情保留完整文字、截图和原声。</li><li>单条或多选添加到组保留已有归属；合并去重，删除组保留记录与附件。</li><li>采用建议后保持阅读位置，等待中的旧结果不覆盖新编辑。</li></ul></article>
+      </div>
+      <p class="notice">上述流程已有自动回归与合成资料检查；真实 AI 效果、宿主兼容性和外部使用体验仍待验证。</p>
+      <div class="prd-actions"><a class="button primary" href="PRD_EXCERPT.md">阅读 PRD 节选 <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section id="iterations" class="section" aria-labelledby="iterations-title">
+      <div class="section-header"><div><p class="section-label">05 / 版本迭代</p><h2 id="iterations-title">从记下来，到找回来。</h2><p class="section-intro">v0.1.0 先实现录音与保存；后续版本陆续增加回顾、搜索和批量管理。点击版本号可查看具体改动及原因。</p></div><a class="quiet-link" href="../../CHANGELOG.md">完整更新记录 ↗</a></div>
+      <div class="timeline-layout"><div id="timeline-buttons" class="timeline-buttons" aria-label="选择版本"></div><article class="timeline-detail" id="timeline-detail" aria-live="polite"><span id="timeline-version" class="version-tag">v0.10.0</span><h3 id="timeline-title">让相关记录使用同一分组</h3><p id="timeline-body">先为每条记录生成摘要，再对整批记录提出共享分组建议。同时加入分组多选、合并和删除，并支持完整展开整理预览。</p><p id="timeline-proof" class="proof">这次调整主要解决分组过多或过于笼统的问题，让相关记录能够归在一起。</p></article></div>
+      <p class="notice">版本记录包含新增功能、交互调整及对应的问题。<a href="ITERATION_STORY.md">阅读三次关键迭代 ↗</a></p>
+    </section>
+
+    <section id="demo" class="section" aria-labelledby="demo-title">
+      <div class="section-header"><div><p class="section-label">06 / 产品演示</p><h2 id="demo-title">跟着演示走一遍。</h2><p class="section-intro">视频展示在当前窗口启动录音、查看原文和截图、确认分组建议，以及批量整理记录的操作。</p></div></div>
+      <div class="video-layout"><div class="video-box"><video id="demo-video" controls preload="metadata" playsinline poster="../assets/demo-cover.png" aria-label="InMoment 产品界面与交互演示"><source src="../assets/inmoment-demo-silent.mp4" type="video/mp4">浏览器不支持此视频，可以打开演示脚本查看。</video><p class="video-caption" id="video-status">90 秒 · 无音轨演示 · 真实界面与操作标注</p></div><div class="video-note"><h3>想到了，就在这里说下来</h3><p>浏览网页、设计稿或 PDF 时，长按右键打开录音浮窗；松开后暂停，点击“继续”可以补充录音。</p><p>音频保留当时的表达，截图记录所处页面。回顾时可以一起查看，再生成摘要或整理分组。</p></div></div>
+    </section>
+
+    <section class="section" aria-labelledby="evidence-title">
+      <div class="section-header"><div><p class="section-label">07 / 目前进展与下一步</p><h2 id="evidence-title">接下来，放到更多使用场景里。</h2><p class="section-intro">目前已有可运行的 Windows 桌面原型，并完成主要功能的自动化检查。尚未开展正式的外部用户研究，也没有真实搜索召回评测和任务耗时统计。</p></div><a class="quiet-link" href="../validation.md">查看技术验证记录 ↗</a></div>
+      <div class="evidence-grid"><article class="evidence-card"><p class="evidence-label">已完成</p><h3>原型已覆盖主要功能</h3><ul><li>支持录音保存、原文与附件回顾、摘要生成、分组管理和描述搜索。</li><li>v0.10.0 的检查记录中，378 项自动测试通过，1 项默认跳过；AI 响应使用模拟数据。</li><li>使用多条记录、多个分组，以及不同窗口尺寸和缩放比例检查界面。</li><li>记录各版本的功能变化、设计调整及原因。</li></ul></article><article class="evidence-card pending"><p class="evidence-label">待验证</p><h3>计划进行真实场景测试</h3><ul><li>邀请经常阅读、研究或收集资料的人试用，观察他们在什么情况下使用录音功能。</li><li>使用包含口语、省略和背景噪声的录音，检查转写与摘要是否准确。</li><li>设计包含时间范围和模糊描述的搜索任务，评估能否找回目标记录。</li><li>增加桌面应用类型和记录数量，继续测试兼容性、索引速度和运行表现。</li></ul></article></div>
+    </section>
+
+    <section id="materials" class="section" aria-labelledby="materials-title">
+      <div class="section-header"><div><p class="section-label">08 / 项目文档</p><h2 id="materials-title">想多了解一点，可以从这里看。</h2><p class="section-intro">这里整理了产品需求、AI 方案、版本记录、测试说明和演示材料，可按需查看。</p></div></div>
+      <div class="materials"><a class="material" href="PRD_EXCERPT.md"><span>需求片段 <span class="arrow" aria-hidden="true">↗</span></span><strong>PRD 节选</strong><p>录音、批量整理和阅读布局的需求说明及验收条件。</p></a><a class="material" href="../product/PRD.md"><span>产品需求 <span class="arrow" aria-hidden="true">↗</span></span><strong>完整需求文档</strong><p>问题、方案、用户故事、实现与测试决策等七部分。</p></a><a class="material" href="PRODUCT_CASE.md"><span>产品思路 <span class="arrow" aria-hidden="true">↗</span></span><strong>产品案例</strong><p>产品背景、个人职责及主要设计决策。</p></a><a class="material" href="AI_DESIGN_AND_EVALUATION.md"><span>AI 应用设计 <span class="arrow" aria-hidden="true">↗</span></span><strong>AI 方案与评测计划</strong><p>本地与云端模型的分工、调用流程及评测计划。</p></a><a class="material" href="ITERATION_STORY.md"><span>产品迭代 <span class="arrow" aria-hidden="true">↗</span></span><strong>三次迭代</strong><p>三次关键交互调整，包括发现的问题和改动内容。</p></a><a class="material" href="DEMO_SCRIPT.md"><span>演示准备 <span class="arrow" aria-hidden="true">↗</span></span><strong>演示分镜与讲解稿</strong><p>产品演示的镜头安排、操作步骤和配音说明。</p></a><a class="material" href="INTERVIEW_NOTES.md"><span>项目交流 <span class="arrow" aria-hidden="true">↗</span></span><strong>面试说明</strong><p>项目介绍要点、设计决策及常见问题说明。</p></a><a class="material" href="RELEASE_PREPARATION.md"><span>发布准备 <span class="arrow" aria-hidden="true">↗</span></span><strong>发布材料说明</strong><p>发布所需文件、待办事项和版本记录维护说明。</p></a><a class="material" href="../../README.md"><span>项目入口 <span class="arrow" aria-hidden="true">↗</span></span><strong>README</strong><p>项目概况、功能介绍及本地运行方法。</p></a><a class="material" href="../../CHANGELOG.md"><span>版本记录 <span class="arrow" aria-hidden="true">↗</span></span><strong>更新记录</strong><p>v0.1.0 至 v0.10.0 的功能更新与交互调整。</p></a><a class="material" href="../validation.md"><span>开发记录 <span class="arrow" aria-hidden="true">↗</span></span><strong>MVP 验证记录</strong><p>测试环境、检查方法和已覆盖的功能。</p></a></div>
+    </section>
+  </main>
+  <footer><div class="shell footer-inner"><p>InMoment · 我的 AI 产品实践</p><p>本地作品集预览 · <a href="#main">返回顶部 ↑</a></p></div></footer>
+  <script>
+    'use strict';
+    const shots = [
+      {file:'inbox.png',label:'分组主页',title:'没选分组，也能先保存',description:'未指定分组的记录保存在“未分类”中，点击卡片即可打开详情。'},
+      {file:'record-detail.png',label:'记录详情',title:'同时查看录音、原文和截图',description:'左侧选择记录，右侧查看详情。可在摘要与原文之间切换，并查看截图和录音。'},
+      {file:'shared-grouping.png',label:'整理预览',title:'按组预览整理结果',description:'每组列出拟归入的记录。确认前可修改分组，或取消某条记录的建议。'},
+      {file:'group-multi-select.png',label:'分组多选',title:'批量管理分组',description:'多选分组后可合并或删除。删除分组不会删除其中的记录或附件。'},
+      {file:'group-merge-picker.png',label:'合并分组',title:'合并分组并保留原有名称',description:'从已选分组中指定一个保留名称，合并其他分组。'},
+      {file:'multi-add-group.png',label:'批量归组',title:'批量添加记录到分组',description:'多选记录并搜索目标分组。添加后，原有分组关系仍然保留。'},
+      {file:'card-menu.png',label:'卡片菜单',title:'卡片操作集中到菜单',description:'通过卡片右上角的“…”菜单添加分组或删除，避免操作按钮挤占内容区域。'},
+      {file:'delete-popover.png',label:'删除确认',title:'删除操作就地确认',description:'点击删除后显示确认浮框；点击外部或按 Esc 可取消。'},
+      {file:'group-picker.png',label:'选择分组',title:'搜索并选择目标分组',description:'在浮框内搜索已有分组。添加后仍停留在当前记录详情。'}
+    ];
+    const shotTabs = document.querySelector('#screenshot-tabs');
+    const screenImage = document.querySelector('#screen-image');
+    function chooseShot(index, focus = false) {
+      const shot = shots[index];
+      screenImage.src = '../assets/' + shot.file;
+      screenImage.alt = shot.title + '。' + shot.description;
+      document.querySelector('#screen-title').textContent = shot.title;
+      document.querySelector('#screen-description').textContent = shot.description;
+      document.querySelector('#screen-full').href = screenImage.getAttribute('src');
+      document.querySelector('#screen-panel').setAttribute('aria-labelledby','shot-' + index);
+      shotTabs.querySelectorAll('button').forEach((button,i) => { button.setAttribute('aria-selected',String(i === index)); button.tabIndex = i === index ? 0 : -1; });
+      if (focus) shotTabs.children[index].focus();
+    }
+    shots.forEach((shot,index) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.id = 'shot-' + index; button.setAttribute('role','tab'); button.setAttribute('aria-controls','screen-panel'); button.textContent = shot.label;
+      button.addEventListener('click',() => chooseShot(index));
+      button.addEventListener('keydown',event => {
+        let next = index;
+        if (event.key === 'ArrowRight') next = (index + 1) % shots.length;
+        else if (event.key === 'ArrowLeft') next = (index + shots.length - 1) % shots.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = shots.length - 1;
+        else return;
+        event.preventDefault(); chooseShot(next,true);
+      });
+      shotTabs.append(button);
+    });
+    chooseShot(0);
+    const versions = [
+      ['0.1.0','先能记下来','完成录音与截图保存','实现长按录音、松开暂停、续录和草稿保存，随后加入回听与文字整理。','先验证从开始录音到保存记录的操作，再据此增加后续功能。'],
+      ['0.2.0','调整触发过程','明确录音触发条件','增加长按进度提示、触发时序设置、可选辅助按键和自动命名功能。','长按进度提示和辅助按键用于减少误触，并允许在录音开始前取消。'],
+      ['0.3.0','看图与设置','支持查看与缩放原图','增加原图查看与缩放、恢复设置前确认，并处理版本升级后的配置保留。','原图查看和缩放解决了截图只能以缩略图阅读的问题。'],
+      ['0.4.0','找回与续想','增加搜索与继续记录','增加描述搜索、主题、继续记录和重复候选提示；截图辅助整理需单独授权。','这次开始处理记录后的使用需求：按线索找回记录，并在原有内容上继续补充。'],
+      ['0.4.1','减少打断','减少窗口切换与重复操作','调整录音浮窗的焦点行为，增加列表删除与统一确认，并准备模拟记录供测试使用。','针对反复切换窗口、进入详情删除等操作，减少了不必要的步骤。'],
+      ['0.5.0','连续阅读','调整列表与详情布局','统一列表与详情布局，将整理入口移至筛选页面，减少后台提示，并修复记录较多时标题挤压的问题。','增加多条记录、滚动和窗口缩放场景的界面检查。'],
+      ['0.6.0','平行分组','调整分组与详情空间分配','采用图标栏、分组栏、记录列表和详情区域的布局；主页为网格视图，打开记录后切换至列表。','分组采用平级结构，避免多层嵌套，并为详情阅读留出空间。'],
+      ['0.7.0','整理与查找','按当前筛选范围整理和搜索','整理范围限定为当前页面筛选出的记录；描述搜索采用本地召回、云端候选排序，并增加灵感云。','确认分组建议后保留当前阅读位置，切换内容时再更新列表。'],
+      ['0.7.1','精简入口','合并重复的文件操作入口','移除标题下的“打开原文件”，保留“打开所在文件夹”。','删除功能相近的入口，仅保留“打开所在文件夹”。'],
+      ['0.8.0','多选与预览','增加批量操作与结果预览','支持记录多选、批量删除、搜索分组，并按组预览整理建议；确认前可修改或取消。','批量操作减少了逐条打开记录和重复确认的次数。'],
+      ['0.9.0','列表与浮框','区分列表与卡片操作','列表标题保持单行并支持左滑操作；卡片提供“…”菜单，删除时就地确认，多选记录可批量归组。','调整已有分组的匹配逻辑，对不适合当前分组的记录提供新分组建议。'],
+      ['0.10.0','一起比较归类','让相关记录使用同一分组','先为每条记录生成摘要，再对整批记录提出共享分组建议。同时加入分组多选、合并和删除，并支持完整展开整理预览。','这次调整主要解决分组过多或过于笼统的问题，让相关记录能够归在一起。']
+    ];
+    const timelineButtons = document.querySelector('#timeline-buttons');
+    function chooseVersion(index) {
+      const version = versions[index];
+      document.querySelector('#timeline-version').textContent = 'v' + version[0];
+      document.querySelector('#timeline-title').textContent = version[2];
+      document.querySelector('#timeline-body').textContent = version[3];
+      document.querySelector('#timeline-proof').textContent = version[4];
+      timelineButtons.querySelectorAll('button').forEach((button,i) => button.setAttribute('aria-expanded',String(i === index)));
+    }
+    versions.forEach((version,index) => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'timeline-button'; button.setAttribute('aria-controls','timeline-detail');
+      const heading = document.createElement('b'); heading.textContent = 'v' + version[0];
+      const label = document.createElement('span'); label.textContent = version[1]; button.append(heading,label);
+      button.addEventListener('click',() => chooseVersion(index)); timelineButtons.append(button);
+    });
+    chooseVersion(versions.length - 1);
+    const demoVideo = document.querySelector('#demo-video');
+    demoVideo.addEventListener('error',() => { document.querySelector('#video-status').textContent = '当前浏览器无法播放，可以打开演示脚本，或直接查看上方截图。'; });
+    demoVideo.querySelector('source').addEventListener('error',() => { document.querySelector('#video-status').textContent = '视频暂时无法播放，可以先看上方截图或演示脚本。'; });
+  </script>
+</body>
+</html>

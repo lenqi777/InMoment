@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-17",
+  "upstreamArchive": "vips-dev-x64-web-8.18.7-static.zip",
+  "upstreamSource": "https://github.com/libvips/build-win64-mxe/releases/download/v8.18.7/vips-dev-x64-web-8.18.7-static.zip",
+  "upstreamArchiveSHA256": "a736af61d3b46499760efa606e469cb14e060445b1f6fd36a1fa2e75009e1197",
+  "archiveEntry": "vips-dev-8.18/bin/libvips-42.dll",
+  "archiveEntryBytes": 19018240,
+  "archiveEntrySHA256": "06dab07cc386748513337a31672b1d5269fbc770a14ff403080575665bf0813f",
+  "installedPackage": "@img/sharp-win32-x64",
+  "installedPackageVersion": "0.35.5",
+  "installedDLLSHA256": "06dab07cc386748513337a31672b1d5269fbc770a14ff403080575665bf0813f",
+  "exactByteMatch": true
+}

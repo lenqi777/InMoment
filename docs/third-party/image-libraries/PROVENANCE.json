@@ -1,0 +1,356 @@
+{
+  "schema_version": 1,
+  "retrieved": "2026-10-17",
+  "scope": "Non-LGPL image dependencies listed by @img/sharp-win32-x64 0.34.5 versions.json and README; original upstream license bytes and Cairo corresponding source",
+  "version_evidence": "node_modules/.pnpm/@img+sharp-win32-x64@0.34.5/node_modules/@img/sharp-win32-x64/versions.json",
+  "cairo_source": {
+    "component": "cairo",
+    "version": "1.18.4",
+    "path": "release-preparation/delivery/third-party-sources/cairo-1.18.4.tar.xz",
+    "filename": "cairo-1.18.4.tar.xz",
+    "source_url": "https://cairographics.org/releases/cairo-1.18.4.tar.xz",
+    "sha256": "445ed8208a6e4823de1226a74ca319d3600e83f6369f99b14265006599c32ccb",
+    "expected_sha256": "445ed8208a6e4823de1226a74ca319d3600e83f6369f99b14265006599c32ccb",
+    "checksum_matches_recipe": true,
+    "bytes": 32578804,
+    "status": "downloaded",
+    "recipe_archive": "mxe-llvm-mingw-20251022-bfbc05093d081116e6cd22bb523d6c9bbb9394aa.tar.gz",
+    "recipe_member": "mxe-bfbc05093d081116e6cd22bb523d6c9bbb9394aa/src/cairo.mk"
+  },
+  "files": [
+    {
+      "path": "docs/third-party/image-libraries/aom/LICENSE",
+      "component": "aom",
+      "version": "3.13.1",
+      "sha256": "4764a286d8b2faeaf42f4418e7d7a28d58fc8fd4d00a3d0a7f44b0a4099de7f2",
+      "bytes": 1316,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.13.1/LICENSE?format=TEXT"
+    },
+    {
+      "path": "docs/third-party/image-libraries/aom/PATENTS",
+      "component": "aom",
+      "version": "3.13.1",
+      "sha256": "661fb8e504744e95587b556b94a58343448300606a41bea8c7a9b97125696e61",
+      "bytes": 5701,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.13.1/PATENTS?format=TEXT"
+    },
+    {
+      "component": "cairo",
+      "version": "1.18.4",
+      "path": "docs/third-party/image-libraries/cairo/COPYING",
+      "source_url": "https://cairographics.org/releases/cairo-1.18.4.tar.xz",
+      "archive_member": "cairo-1.18.4/COPYING",
+      "sha256": "67228a9f7c5f9b67c58f556f1be178f62da4d9e2e6285318d8c74d567255abdf",
+      "bytes": 1576,
+      "status": "extracted-original-bytes"
+    },
+    {
+      "component": "cairo",
+      "version": "1.18.4",
+      "path": "docs/third-party/image-libraries/cairo/COPYING-MPL-1.1",
+      "source_url": "https://cairographics.org/releases/cairo-1.18.4.tar.xz",
+      "archive_member": "cairo-1.18.4/COPYING-MPL-1.1",
+      "sha256": "53692a2ed6c6a2c6ec9b32dd0b820dfae91e0a1fcdf625ca9ed0bdf8705fcc4f",
+      "bytes": 25755,
+      "status": "extracted-original-bytes"
+    },
+    {
+      "component": "cairo",
+      "version": "1.18.4 (license MPL-2.0)",
+      "path": "docs/third-party/image-libraries/cairo/MPL-2.0.txt",
+      "source_url": "https://www.mozilla.org/media/MPL/2.0/index.txt",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "bytes": 16726,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "path": "docs/third-party/image-libraries/cgif/LICENSE",
+      "component": "cgif",
+      "version": "0.5.0",
+      "sha256": "7264dede477abab4ac3fe8236beb8153845c04ccd33b18f281085087e219fc6d",
+      "bytes": 1099,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/dloebl/cgif/v0.5.0/LICENSE"
+    },
+    {
+      "path": "docs/third-party/image-libraries/expat/COPYING",
+      "component": "expat",
+      "version": "2.7.3",
+      "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87",
+      "bytes": 1144,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_7_3/expat/COPYING"
+    },
+    {
+      "component": "fontconfig",
+      "version": "2.17.1",
+      "path": "docs/third-party/image-libraries/fontconfig/COPYING",
+      "source_url": "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/raw/2.17.1/COPYING",
+      "sha256": "51a51aa9823704fd90bccc616cdd17ebabb5b2b3e9cbde886ca02c7002288067",
+      "bytes": 8616,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/FTL.TXT",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/docs/FTL.TXT",
+      "sha256": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+      "bytes": 6743,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/LICENSE.TXT",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/LICENSE.TXT",
+      "sha256": "bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b",
+      "bytes": 2149,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/README",
+      "sha256": "1d5dd15666be8b9ca528385b196bbf39365a7ca8f28a020b0b809cc35cc1e1f3",
+      "bytes": 3093,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/bdf-README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/src/bdf/README",
+      "sha256": "7984455e7e5a9faba3797c8bf095fbe10cc846316b7320aff8c58402e22b82fe",
+      "bytes": 5972,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/gzip-zlib.h",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/src/gzip/zlib.h",
+      "sha256": "c86a25c27f74cb97b8fa07b175f479f063d5064ace9995b4684063643c81cf1b",
+      "bytes": 97499,
+      "status": "downloaded"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.1",
+      "path": "docs/third-party/image-libraries/freetype/pcf-README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-1/src/pcf/README",
+      "sha256": "18d9782898d9eac04476e2f744678137b2a889689ed3e923e052fc396a86f86b",
+      "bytes": 3311,
+      "status": "downloaded"
+    },
+    {
+      "path": "docs/third-party/image-libraries/harfbuzz/COPYING",
+      "component": "harfbuzz",
+      "version": "12.1.0",
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+      "bytes": 1971,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/12.1.0/COPYING"
+    },
+    {
+      "path": "docs/third-party/image-libraries/highway/LICENSE",
+      "component": "highway",
+      "version": "1.3.0",
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+      "bytes": 11356,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/google/highway/1.3.0/LICENSE"
+    },
+    {
+      "path": "docs/third-party/image-libraries/highway/LICENSE-BSD3",
+      "component": "highway",
+      "version": "1.3.0",
+      "sha256": "d25e82e26acd42ca3ccc9993622631163425b869b9e16284226d534cff6470f2",
+      "bytes": 1515,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/google/highway/1.3.0/LICENSE-BSD3"
+    },
+    {
+      "component": "lcms",
+      "version": "2.17",
+      "path": "docs/third-party/image-libraries/lcms/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/mm2/Little-CMS/lcms2.17/LICENSE",
+      "sha256": "6dbd60437f8ef91d8de1f08ad75882547fd4931bfcc3566a0735f28db1484d31",
+      "bytes": 1080,
+      "status": "downloaded"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.2",
+      "path": "docs/third-party/image-libraries/libarchive/COPYING",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.2/COPYING",
+      "sha256": "30e556b3959e3985d66efefec5eaac51d4995053caa1d3cffe6eb916f146f229",
+      "bytes": 3089,
+      "status": "downloaded"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.2",
+      "path": "docs/third-party/image-libraries/libarchive/archive_read_support_filter_compress.c",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.2/libarchive/archive_read_support_filter_compress.c",
+      "sha256": "cc87b4de78b95dab5c2d189b8b7e4bb3e23f770a3d339f867e708f125e24b1f4",
+      "bytes": 13346,
+      "status": "downloaded"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.2",
+      "path": "docs/third-party/image-libraries/libarchive/archive_write_add_filter_compress.c",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.2/libarchive/archive_write_add_filter_compress.c",
+      "sha256": "65247e80743a3ce9edc42ed6d33b4b9a3cc8ac0ea49426f7d22b7ca42763d68d",
+      "bytes": 12770,
+      "status": "downloaded"
+    },
+    {
+      "component": "libffi",
+      "version": "3.5.2",
+      "path": "docs/third-party/image-libraries/libffi/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/libffi/libffi/v3.5.2/LICENSE",
+      "sha256": "d5699fa516968e3a1550e6c902b7441c78856f2603d61bedd0b0662a26655366",
+      "bytes": 1132,
+      "status": "downloaded"
+    },
+    {
+      "component": "libimagequant",
+      "version": "2.4.1",
+      "path": "docs/third-party/image-libraries/libimagequant/COPYRIGHT",
+      "source_url": "https://raw.githubusercontent.com/lovell/libimagequant/v2.4.1/COPYRIGHT",
+      "sha256": "7391bfbcde4404cefb9849553362c3ab436f929f5cc1abb57071ec045590ee99",
+      "bytes": 1851,
+      "status": "downloaded"
+    },
+    {
+      "component": "libpng",
+      "version": "1.6.50",
+      "path": "docs/third-party/image-libraries/libpng/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/pnggroup/libpng/v1.6.50/LICENSE",
+      "sha256": "16d9daaafbf63a31a5bdc91d4600972548fef5aaa1244202393288dbd079c49a",
+      "bytes": 5345,
+      "status": "downloaded"
+    },
+    {
+      "component": "libspng",
+      "version": "0.7.4",
+      "path": "docs/third-party/image-libraries/libspng/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/randy408/libspng/v0.7.4/LICENSE",
+      "sha256": "0622b0794d0fecde47d743f1bb70a03e6fdf082be8e71f39de672ed995d96ff9",
+      "bytes": 1341,
+      "status": "downloaded"
+    },
+    {
+      "component": "libtiff",
+      "version": "4.7.1",
+      "path": "docs/third-party/image-libraries/libtiff/LICENSE.md",
+      "source_url": "https://gitlab.com/libtiff/libtiff/-/raw/v4.7.1/LICENSE.md",
+      "sha256": "0e27c2382d7b8147972bbb746e04059a1152c8d0fda9d03ef1399d1a433c4ade",
+      "bytes": 2416,
+      "status": "downloaded"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/image-libraries/libwebp/AUTHORS",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/AUTHORS",
+      "sha256": "f251be89fd442bd9d701360730aea163cc8e2076ff03528f59267dc2c4f8b60a",
+      "bytes": 3279,
+      "status": "downloaded"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/image-libraries/libwebp/COPYING",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/COPYING",
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf",
+      "bytes": 1496,
+      "status": "downloaded"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/image-libraries/libwebp/PATENTS",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/PATENTS",
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c",
+      "bytes": 1436,
+      "status": "downloaded"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.1",
+      "path": "docs/third-party/image-libraries/libxml2/Copyright",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.1/Copyright",
+      "sha256": "5d4873884a890122a4b9b20ad56ac6f7da1d796a5bfcf04a427970ac96217626",
+      "bytes": 1314,
+      "status": "downloaded"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.1",
+      "path": "docs/third-party/image-libraries/libxml2/dict.c",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.1/dict.c",
+      "sha256": "416253664eb3d95a393be6c61c649a1b5600729bbd1e3ce9123df08b12d8f388",
+      "bytes": 25239,
+      "status": "downloaded"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.1",
+      "path": "docs/third-party/image-libraries/libxml2/list.c",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.1/list.c",
+      "sha256": "8a04740bfd8a37f3006bfc0404aa31429e56ef991cddcd47707ce2a9b1d98506",
+      "bytes": 15193,
+      "status": "downloaded"
+    },
+    {
+      "component": "mozjpeg",
+      "version": "08265790774cd0714832c9e675522acbe5581437",
+      "path": "docs/third-party/image-libraries/mozjpeg/LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/mozilla/mozjpeg/08265790774cd0714832c9e675522acbe5581437/LICENSE.md",
+      "sha256": "96f5b328adbb78eeaaec6980d73fd558cb1e4d62560ed615646bc3cf5e532430",
+      "bytes": 5620,
+      "status": "downloaded"
+    },
+    {
+      "component": "mozjpeg",
+      "version": "08265790774cd0714832c9e675522acbe5581437",
+      "path": "docs/third-party/image-libraries/mozjpeg/README.ijg",
+      "source_url": "https://raw.githubusercontent.com/mozilla/mozjpeg/08265790774cd0714832c9e675522acbe5581437/README.ijg",
+      "sha256": "f4a85f8677ca4e41b185c0a9f7c31a30ddb9ce43c561483ee92ef12db37c2a10",
+      "bytes": 12715,
+      "status": "downloaded"
+    },
+    {
+      "component": "pixman",
+      "version": "0.46.4",
+      "path": "docs/third-party/image-libraries/pixman/COPYING",
+      "source_url": "https://gitlab.freedesktop.org/pixman/pixman/-/raw/pixman-0.46.4/COPYING",
+      "sha256": "fac9270f0987b96ff4533fca3548c633e02083cbba4a0172a3b149b2e4019793",
+      "bytes": 2087,
+      "status": "downloaded"
+    },
+    {
+      "component": "zlib-ng",
+      "version": "2.2.5",
+      "path": "docs/third-party/image-libraries/zlib-ng/LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/zlib-ng/zlib-ng/2.2.5/LICENSE.md",
+      "sha256": "6c9f0d975b41afaa34d22f55bb8986ce69e5cb7ad327cb2b28820cd425edf5ee",
+      "bytes": 867,
+      "status": "downloaded"
+    }
+  ],
+  "unresolved": []
+}

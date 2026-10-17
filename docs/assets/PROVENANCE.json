@@ -1,0 +1,90 @@
+{
+  "preparedAt": "2026-10-17",
+  "appVersion": "0.10.0",
+  "syntheticOnly": true,
+  "realAPICalls": 0,
+  "aiResults": "示例记录、摘要和分组提前准备；应用已接入云端 AI，本次素材制作未调用云端服务。",
+  "screenshots": [
+    {
+      "file": "inbox.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "01-home.png"
+    },
+    {
+      "file": "record-detail.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "03-detail-summary.png"
+    },
+    {
+      "file": "card-menu.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "20-card-menu.png"
+    },
+    {
+      "file": "group-picker.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "21-group-picker.png"
+    },
+    {
+      "file": "delete-popover.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "27-delete-popover.png"
+    },
+    {
+      "file": "multi-add-group.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "28-multi-add-group.png"
+    },
+    {
+      "file": "group-multi-select.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "30-merge-selection.png"
+    },
+    {
+      "file": "group-merge-picker.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "31-merge-retain-name.png"
+    },
+    {
+      "file": "shared-grouping.png",
+      "source": "v0.10.0 isolated preview",
+      "original": "33-shared-grouping.png"
+    }
+  ],
+  "video": {
+    "file": "inmoment-demo-silent.mp4",
+    "captions": "inmoment-demo.vtt",
+    "cover": "demo-cover.png",
+    "type": "Frame-driven UI showcase using recorded InMoment UI and original motion graphics",
+    "durationSeconds": 90,
+    "width": 1920,
+    "height": 1080,
+    "framesPerSecond": 30,
+    "frames": 2700,
+    "audioStreams": 0,
+    "soundtrack": {
+      "included": false,
+      "reason": "Public derivative removes the reference soundtrack; supplied media does not establish redistribution rights."
+    },
+    "narration": false,
+    "capture": "Existing isolated demonstration library, owned web/design/PDF scenes, synthetic input and audio",
+    "syntheticOnly": true,
+    "desktopCapture": false,
+    "realMicrophoneCapture": false,
+    "aiResults": "Summaries and shared grouping suggestions prepared before recording",
+    "applicationAPICalls": 0,
+    "applicationModelRuns": 0,
+    "motion": "Fixed product-window transform during operation and reading; explicit annotation end times before the target closes",
+    "style": "Yellow, pale green and lavender geometric backgrounds with a dark green end card",
+    "prompt": "../portfolio/VIDEO_PROMPT.md",
+    "sha256": "d4aaa9a32c54aed39a2f1bf84c2ba82c5f56b745037c30a8877864230fae1e51",
+    "publicDerivativePreparedAt": "2026-10-17"
+  },
+  "applicationModelRuns": 0,
+  "animation": {
+    "file": "workflow.gif",
+    "source": "Opening, original text and summary excerpt of the isolated application recording",
+    "durationSeconds": 18,
+    "sha256": "46a1643dd0924441b4733ed7a738abfe98fb1c4595b6405a2e69ab9ab46d18c2"
+  }
+}

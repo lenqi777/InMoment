@@ -1,0 +1,58 @@
+{
+  "preparedAt": "2026-10-17",
+  "purpose": "current-dependency-updated-release-preparation",
+  "sharpVersion": "0.35.5",
+  "libvipsVersion": "8.18.7",
+  "files": [
+    {
+      "file": "SHARP-v0.35.5-LICENSE.txt",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.5.tgz",
+      "archiveEntry": "package/LICENSE",
+      "bytes": 10464,
+      "sha256": "dc1f5d2d43c5531dfe0acaf4e950ea5dbe3e61e1850cf0e983bda7efc10d6693"
+    },
+    {
+      "file": "SHARP-WINDOWS-v0.35.5-README.md",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.5.tgz",
+      "archiveEntry": "package/README.md",
+      "bytes": 4913,
+      "sha256": "3d083ada5ebafe1e6c227daa7b061d4254b61df4a3901c359ffdeac817ce5866"
+    },
+    {
+      "file": "SHARP-WINDOWS-v0.35.5-versions.json",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.5.tgz",
+      "archiveEntry": "package/versions.json",
+      "bytes": 596,
+      "sha256": "e2611d5d854815a8b33c8a3d2ec649511a9596ccf16844e8eae7cf81e79881c4"
+    },
+    {
+      "file": "SHARP-LIBVIPS-v1.3.4-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/lovell/sharp-libvips/ebb95f8add54eee8bed840e3fb587e4cbec857d7/LICENSE",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "file": "SHARP-LIBVIPS-v1.3.4-THIRD-PARTY-NOTICES.md",
+      "source": "https://raw.githubusercontent.com/lovell/sharp-libvips/ebb95f8add54eee8bed840e3fb587e4cbec857d7/THIRD-PARTY-NOTICES.md",
+      "bytes": 4230,
+      "sha256": "6f0d5086e3bcbee12bcdacf5878b31d1104002aeecaeb241d3fff466108082fe"
+    },
+    {
+      "file": "LIBVIPS-v8.18.7-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/libvips/libvips/v8.18.7/LICENSE",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    }
+  ],
+  "subdirectories": [
+    {
+      "directory": "image-libraries",
+      "manifest": "image-libraries/PROVENANCE.json"
+    },
+    {
+      "directory": "lgpl-library-notices",
+      "manifest": "lgpl-library-notices/PROVENANCE.json"
+    }
+  ],
+  "binaryMatchEvidence": "LIBVIPS-BINARY-MATCH.json"
+}

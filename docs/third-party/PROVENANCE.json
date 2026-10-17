@@ -1,0 +1,129 @@
+{
+  "preparedAt": "2026-10-17",
+  "packageVersion": "0.10.0",
+  "files": [
+    {
+      "file": "ONNXRUNTIME-v1.21.0-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.21.0/LICENSE",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+    },
+    {
+      "file": "ONNXRUNTIME-v1.21.0-ThirdPartyNotices.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.21.0/ThirdPartyNotices.txt",
+      "bytes": 316114,
+      "sha256": "8c06e8cff286a4a117b3b246a4c7da68428a144af757823db50e3d6520941ec6"
+    },
+    {
+      "file": "ONNXRUNTIME-89f8206ba4-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/89f8206ba4f1c22c39e0297fb55272e8ce8cd7d0/LICENSE",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+    },
+    {
+      "file": "ONNXRUNTIME-89f8206ba4-ThirdPartyNotices.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/89f8206ba4f1c22c39e0297fb55272e8ce8cd7d0/ThirdPartyNotices.txt",
+      "bytes": 326866,
+      "sha256": "e9e90971a8e75a9a8ac0c6412e29c1202d079998389915aa485f46c816c3b4cc"
+    },
+    {
+      "file": "SHARP-v0.34.5-LICENSE.txt",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.5.tgz",
+      "note": "LICENSE, original installed npm package bytes",
+      "bytes": 10464,
+      "sha256": "dc1f5d2d43c5531dfe0acaf4e950ea5dbe3e61e1850cf0e983bda7efc10d6693",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "SHARP-WINDOWS-v0.34.5-README.md",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.5.tgz",
+      "note": "README.md, original installed npm package bytes",
+      "bytes": 4899,
+      "sha256": "c416cd0af88256407c36a0613f189ac4257221c7206d0324f7ef5563c66f1125",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "SHARP-WINDOWS-v0.34.5-versions.json",
+      "source": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.5.tgz",
+      "note": "versions.json, original installed npm package bytes",
+      "bytes": 594,
+      "sha256": "e823074bfa33ed7b1861b797dd3c60d7ef8c34cd2faa9a7d22ec32dd6d6ad8ad",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "SHARP-LIBVIPS-v1.2.4-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/LICENSE",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "SHARP-LIBVIPS-v1.2.4-THIRD-PARTY-NOTICES.md",
+      "source": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/THIRD-PARTY-NOTICES.md",
+      "bytes": 4230,
+      "sha256": "3f416978dd2448ddab0d413d333c45fb208acdc066c280b95ebcb2f8b9f34ab9",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "LIBVIPS-v8.17.3-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/libvips/libvips/v8.17.3/LICENSE",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "file": "LGPL-3.0.txt",
+      "source": "https://raw.githubusercontent.com/spdx/license-list-data/31ba1a50e5397e00a304dbadc76531740e89ee48/text/LGPL-3.0-or-later.txt",
+      "note": "Complete SPDX standard text, including the incorporated GPL text.",
+      "bytes": 42098,
+      "sha256": "996af0513df21f7496288951c41428a03c174e9e4a9d63665c57d670f845ccb1"
+    },
+    {
+      "file": "GPL-3.0.txt",
+      "source": "https://www.gnu.org/licenses/gpl-3.0.txt",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "file": "ISC-standard-SPDX.txt",
+      "source": "https://raw.githubusercontent.com/spdx/license-list-data/31ba1a50e5397e00a304dbadc76531740e89ee48/text/ISC.txt",
+      "note": "Standard reference only; placeholders deliberately preserved, not an authenticated guid-typescript copyright notice.",
+      "bytes": 737,
+      "sha256": "521c6f0ed8e64736684f89843d16a4df6b4b7449acbcfc6ca6630a3037ca8c53"
+    },
+    {
+      "file": "SDL2-2.28.5-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/libsdl-org/SDL/release-2.28.5/LICENSE.txt",
+      "purpose": "historical-ASR-bundles-only-current-excludes-SDL2",
+      "bytes": 884,
+      "sha256": "9928507f684c1965d07f2b6ef4b4723d5efc2f6b4ab731f743a413c51c319927"
+    }
+  ],
+  "subdirectories": [
+    {
+      "directory": "image-libraries",
+      "manifest": "image-libraries/PROVENANCE.json",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "directory": "lgpl-library-notices",
+      "manifest": "lgpl-library-notices/PROVENANCE.json",
+      "purpose": "historical-sharp-0.34.5"
+    },
+    {
+      "directory": "sharp-0.35.5",
+      "manifest": "sharp-0.35.5/PROVENANCE.json",
+      "purpose": "current-dependency-updated-release-preparation"
+    }
+  ],
+  "attributionUncertainty": {
+    "package": "guid-typescript",
+    "version": "1.0.9",
+    "declaredLicense": "ISC",
+    "declaredAuthor": "nicolas",
+    "originalAuthorSpecificNoticeRecovered": false
+  },
+  "currentDependencyVariant": "sharp-0.35.5",
+  "historicalDependencyVariant": "sharp-0.34.5",
+  "modelInferenceOrCloudAIRequests": 0
+}

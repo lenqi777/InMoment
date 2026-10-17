@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "retrieved": "2026-10-17",
+  "scope": "20 explicitly versioned non-LGPL image dependencies plus libnsgif embedded in libvips 8.18.7, identified by @img/sharp-win32-x64 0.35.5 and fixed upstream libvips source; original license bytes and Cairo corresponding source",
+  "version_evidence": {
+    "path": "release-preparation/licensing-cache/sharp-win32-x64-0.35.5.tgz",
+    "source_url": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.5.tgz",
+    "members": [
+      "package/versions.json",
+      "package/README.md"
+    ],
+    "sha256": "16a804181ddd258ca6fe7079b2faa0c0356654c9db3d93ab0a80ec5e5161c3d4"
+  },
+  "cairo_source": {
+    "component": "cairo",
+    "version": "1.18.6",
+    "path": "release-preparation/delivery/third-party-sources/sharp-0.35.5/cairo-1.18.6.tar.xz",
+    "filename": "cairo-1.18.6.tar.xz",
+    "source_url": "https://cairographics.org/releases/cairo-1.18.6.tar.xz",
+    "sha256": "1c767308174337a74694da0f3ec069c271452163a1ef4540964c50c301f157d4",
+    "expected_sha256": "1c767308174337a74694da0f3ec069c271452163a1ef4540964c50c301f157d4",
+    "checksum_matches_recipe": true,
+    "bytes": 32725456,
+    "status": "downloaded",
+    "recipe_archive": "libvips-build-win64-mxe-ef19ca09af2453d127453d677c849ccb37cf5694.tar.gz",
+    "recipe_member": "build-win64-mxe-ef19ca09af2453d127453d677c849ccb37cf5694/build/overrides.mk"
+  },
+  "files": [
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/aom/LICENSE",
+      "component": "aom",
+      "version": "3.15.1",
+      "sha256": "4764a286d8b2faeaf42f4418e7d7a28d58fc8fd4d00a3d0a7f44b0a4099de7f2",
+      "bytes": 1316,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.15.1/LICENSE?format=TEXT",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.15.1/LICENSE?format=TEXT"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/aom/PATENTS",
+      "component": "aom",
+      "version": "3.15.1",
+      "sha256": "661fb8e504744e95587b556b94a58343448300606a41bea8c7a9b97125696e61",
+      "bytes": 5701,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.15.1/PATENTS?format=TEXT",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.15.1/PATENTS?format=TEXT"
+    },
+    {
+      "component": "cairo",
+      "version": "1.18.6",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/cairo/COPYING",
+      "source_url": "https://cairographics.org/releases/cairo-1.18.6.tar.xz",
+      "archive_member": "cairo-1.18.6/COPYING",
+      "sha256": "67228a9f7c5f9b67c58f556f1be178f62da4d9e2e6285318d8c74d567255abdf",
+      "bytes": 1576,
+      "status": "extracted-original-bytes"
+    },
+    {
+      "component": "cairo",
+      "version": "1.18.6",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/cairo/COPYING-MPL-1.1",
+      "source_url": "https://cairographics.org/releases/cairo-1.18.6.tar.xz",
+      "archive_member": "cairo-1.18.6/COPYING-MPL-1.1",
+      "sha256": "53692a2ed6c6a2c6ec9b32dd0b820dfae91e0a1fcdf625ca9ed0bdf8705fcc4f",
+      "bytes": 25755,
+      "status": "extracted-original-bytes"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/cgif/LICENSE",
+      "component": "cgif",
+      "version": "0.5.4",
+      "sha256": "7264dede477abab4ac3fe8236beb8153845c04ccd33b18f281085087e219fc6d",
+      "bytes": 1099,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://raw.githubusercontent.com/dloebl/cgif/v0.5.4/LICENSE",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://raw.githubusercontent.com/dloebl/cgif/v0.5.4/LICENSE"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/expat/COPYING",
+      "component": "expat",
+      "version": "2.8.5",
+      "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87",
+      "bytes": 1144,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_8_5/expat/COPYING",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_8_5/expat/COPYING"
+    },
+    {
+      "component": "fontconfig",
+      "version": "2.18.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/fontconfig/COPYING",
+      "source_url": "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/raw/2.18.3/COPYING",
+      "sha256": "51a51aa9823704fd90bccc616cdd17ebabb5b2b3e9cbde886ca02c7002288067",
+      "bytes": 8616,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/FTL.TXT",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/docs/FTL.TXT",
+      "sha256": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+      "bytes": 6743,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/LICENSE.TXT",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/LICENSE.TXT",
+      "sha256": "bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b",
+      "bytes": 2149,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/README",
+      "sha256": "f322f7906b11a8c44b8a3973c0b1b31e56b5d59ef78638a459bf134f9c145796",
+      "bytes": 3189,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/bdf-README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/src/bdf/README",
+      "sha256": "7984455e7e5a9faba3797c8bf095fbe10cc846316b7320aff8c58402e22b82fe",
+      "bytes": 5972,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/gzip-zlib.h",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/src/gzip/zlib.h",
+      "sha256": "c86a25c27f74cb97b8fa07b175f479f063d5064ace9995b4684063643c81cf1b",
+      "bytes": 97499,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "freetype",
+      "version": "2.14.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/freetype/pcf-README",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/VER-2-14-3/src/pcf/README",
+      "sha256": "18d9782898d9eac04476e2f744678137b2a889689ed3e923e052fc396a86f86b",
+      "bytes": 3311,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/harfbuzz/COPYING",
+      "component": "harfbuzz",
+      "version": "14.5.0",
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+      "bytes": 1971,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/14.5.0/COPYING",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/14.5.0/COPYING"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/highway/LICENSE",
+      "component": "highway",
+      "version": "1.4.0",
+      "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af",
+      "bytes": 20785,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://raw.githubusercontent.com/google/highway/1.4.0/LICENSE",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://raw.githubusercontent.com/google/highway/1.4.0/LICENSE"
+    },
+    {
+      "component": "lcms",
+      "version": "2.19.1",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/lcms/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/mm2/Little-CMS/lcms2.19.1/LICENSE",
+      "sha256": "6dbd60437f8ef91d8de1f08ad75882547fd4931bfcc3566a0735f28db1484d31",
+      "bytes": 1080,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.9",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libarchive/COPYING",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.9/COPYING",
+      "sha256": "30e556b3959e3985d66efefec5eaac51d4995053caa1d3cffe6eb916f146f229",
+      "bytes": 3089,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.9",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libarchive/archive_read_support_filter_compress.c",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.9/libarchive/archive_read_support_filter_compress.c",
+      "sha256": "9cd45ac0ec6f498db1c6d5c9af28ac4788322526c451c33856e8f72e49d4cd9c",
+      "bytes": 13469,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libarchive",
+      "version": "3.8.9",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libarchive/archive_write_add_filter_compress.c",
+      "source_url": "https://raw.githubusercontent.com/libarchive/libarchive/v3.8.9/libarchive/archive_write_add_filter_compress.c",
+      "sha256": "f0df99ae10b089dfe052fe40d75937d8ad6c442becb024542cefd55686be5f38",
+      "bytes": 13122,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libffi",
+      "version": "3.8.0",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libffi/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/libffi/libffi/v3.8.0/LICENSE",
+      "sha256": "17b64dc60f3b6897a60f971e288b973f655c2edcdf08b25f3c3dd5549857881c",
+      "bytes": 1132,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libimagequant",
+      "version": "2.4.1",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libimagequant/COPYRIGHT",
+      "source_url": "https://raw.githubusercontent.com/lovell/libimagequant/v2.4.1/COPYRIGHT",
+      "sha256": "7391bfbcde4404cefb9849553362c3ab436f929f5cc1abb57071ec045590ee99",
+      "bytes": 1851,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/libimagequant/COPYRIGHT"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libnsgif/COPYING",
+      "component": "libnsgif",
+      "version": "embedded in libvips 8.18.7",
+      "bytes": 1133,
+      "sha256": "1469b759cf18e43c6e1b4ff892307d3962cbbb337ac497620d6690a219fad10c",
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/libvips/libvips/v8.18.7/libvips/foreign/libnsgif/COPYING"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libnsgif/meson.build",
+      "component": "libnsgif",
+      "version": "embedded in libvips 8.18.7",
+      "bytes": 125,
+      "sha256": "917236f2ba2913323abc9e92a39521e0ed8d6a897787950f438ed5818eadbdd9",
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "source_url": "https://raw.githubusercontent.com/libvips/libvips/v8.18.7/libvips/foreign/libnsgif/meson.build"
+    },
+    {
+      "component": "libpng",
+      "version": "1.6.58",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libpng/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/pnggroup/libpng/v1.6.58/LICENSE",
+      "sha256": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526",
+      "bytes": 5345,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libtiff",
+      "version": "4.7.2",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libtiff/LICENSE.md",
+      "source_url": "https://gitlab.com/libtiff/libtiff/-/raw/v4.7.2/LICENSE.md",
+      "sha256": "0e27c2382d7b8147972bbb746e04059a1152c8d0fda9d03ef1399d1a433c4ade",
+      "bytes": 2416,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libultrahdr/LICENSE",
+      "component": "libultrahdr",
+      "version": "2.0.2",
+      "sha256": "c9247b5cb07866938643cc238292434e6f2af8642e1fce10771c0e4cc7909316",
+      "bytes": 12566,
+      "status": "downloaded-original-bytes",
+      "retrieved": "2026-10-17",
+      "optional": false,
+      "previousFailures": [
+        {
+          "source": "https://raw.githubusercontent.com/google/libultrahdr/v2.0.2/LICENSE",
+          "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"以一种访问权限不允许的方式做了一个访问套接字的尝试。 (127.0.0.1:7897)\"",
+          "retrieved": "2026-10-17"
+        }
+      ],
+      "source_url": "https://raw.githubusercontent.com/google/libultrahdr/v2.0.2/LICENSE"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libwebp/AUTHORS",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/AUTHORS",
+      "sha256": "f251be89fd442bd9d701360730aea163cc8e2076ff03528f59267dc2c4f8b60a",
+      "bytes": 3279,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/libwebp/AUTHORS"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libwebp/COPYING",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/COPYING",
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf",
+      "bytes": 1496,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/libwebp/COPYING"
+    },
+    {
+      "component": "libwebp",
+      "version": "1.6.0",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libwebp/PATENTS",
+      "source_url": "https://raw.githubusercontent.com/webmproject/libwebp/v1.6.0/PATENTS",
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c",
+      "bytes": 1436,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/libwebp/PATENTS"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.4",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libxml2/Copyright",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.4/Copyright",
+      "sha256": "5d4873884a890122a4b9b20ad56ac6f7da1d796a5bfcf04a427970ac96217626",
+      "bytes": 1314,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.4",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libxml2/dict.c",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.4/dict.c",
+      "sha256": "2663392f29dd45eb7ad802c471e146d4f6f509e317a4938b496920b4ea0228b4",
+      "bytes": 25613,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "libxml2",
+      "version": "2.15.4",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libxml2/list.c",
+      "source_url": "https://raw.githubusercontent.com/GNOME/libxml2/v2.15.4/list.c",
+      "sha256": "8a04740bfd8a37f3006bfc0404aa31429e56ef991cddcd47707ce2a9b1d98506",
+      "bytes": 15193,
+      "status": "downloaded-original-bytes"
+    },
+    {
+      "component": "mozjpeg",
+      "version": "08265790774cd0714832c9e675522acbe5581437",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/mozjpeg/LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/mozilla/mozjpeg/08265790774cd0714832c9e675522acbe5581437/LICENSE.md",
+      "sha256": "96f5b328adbb78eeaaec6980d73fd558cb1e4d62560ed615646bc3cf5e532430",
+      "bytes": 5620,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/mozjpeg/LICENSE.md"
+    },
+    {
+      "component": "mozjpeg",
+      "version": "08265790774cd0714832c9e675522acbe5581437",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/mozjpeg/README.ijg",
+      "source_url": "https://raw.githubusercontent.com/mozilla/mozjpeg/08265790774cd0714832c9e675522acbe5581437/README.ijg",
+      "sha256": "f4a85f8677ca4e41b185c0a9f7c31a30ddb9ce43c561483ee92ef12db37c2a10",
+      "bytes": 12715,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/mozjpeg/README.ijg"
+    },
+    {
+      "component": "pixman",
+      "version": "0.46.4",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/pixman/COPYING",
+      "source_url": "https://gitlab.freedesktop.org/pixman/pixman/-/raw/pixman-0.46.4/COPYING",
+      "sha256": "fac9270f0987b96ff4533fca3548c633e02083cbba4a0172a3b149b2e4019793",
+      "bytes": 2087,
+      "status": "reused-original-bytes",
+      "reusedFrom": "docs/third-party/image-libraries/pixman/COPYING"
+    },
+    {
+      "component": "zlib-ng",
+      "version": "2.3.3",
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/zlib-ng/LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/zlib-ng/zlib-ng/2.3.3/LICENSE.md",
+      "sha256": "6c9f0d975b41afaa34d22f55bb8986ce69e5cb7ad327cb2b28820cd425edf5ee",
+      "bytes": 867,
+      "status": "downloaded-original-bytes"
+    }
+  ],
+  "optional_upstream_file_attempts": [
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/highway/LICENSE-BSD3",
+      "component": "highway",
+      "version": "1.4.0",
+      "status": "optional-upstream-file-not-found",
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"Response status code does not indicate success: 404 (Not Found).\"",
+      "retrieved": "2026-10-17",
+      "optional": true,
+      "note": "Version 1.4.0 consolidates the Apache, BSD 3-Clause, and CC0 texts in LICENSE; there is no separate LICENSE-BSD3 at the attempted fixed-version URL.",
+      "source_url": "https://raw.githubusercontent.com/google/highway/1.4.0/LICENSE-BSD3"
+    },
+    {
+      "path": "docs/third-party/sharp-0.35.5/image-libraries/libultrahdr/NOTICE",
+      "component": "libultrahdr",
+      "version": "2.0.2",
+      "status": "optional-upstream-file-not-found",
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"Response status code does not indicate success: 404 (Not Found).\"",
+      "retrieved": "2026-10-17",
+      "optional": true,
+      "note": "Version 2.0.2 LICENSE contains MIT and Apache license texts; no separate NOTICE exists at the attempted fixed-version URL. No NOTICE file was fabricated.",
+      "source_url": "https://raw.githubusercontent.com/google/libultrahdr/v2.0.2/NOTICE"
+    }
+  ],
+  "unresolved": []
+}
