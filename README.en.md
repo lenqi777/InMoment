@@ -35,8 +35,6 @@ Choose DeepSeek, OpenAI (GPT), or Google Gemini for cloud AI. Let InMoment choos
 
 **0.14.31 · Windows 11 x64**: [Download the Windows installer (EXE)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe). The interface is in Chinese.
 
-Older downloads: [0.10.0 full package](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 archives](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [All releases](https://github.com/lenqi777/InMoment/releases).
-
 1. Open `InMoment-Setup-0.14.31-x64.exe` and choose the installation folder.
 2. If the VC++ x64 Runtime is missing, setup asks before downloading it from Microsoft. When setup finishes, open InMoment from the Start menu.
 3. Grant microphone permission to record, or create a note directly. The full package includes offline transcription, a local semantic model, and image OCR. Everyday local features require no API key or separate Node.js, pnpm, or Python installation.

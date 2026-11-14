@@ -7,7 +7,7 @@
 - 完整 Windows 11 x64 便携包：程序运行时、原生助手、离线转写、语义模型、图片 OCR、安装入口及第三方许可。
 - 独立的公开源码副本、中英文 README、用户指南、开发说明和 [0.14.31 更新说明](0.14.31.md)。
 - 0.14.31 实际界面截图：全部笔记、笔记详情、聊天及 AI 服务设置。示例资料为合成内容，AI 展示结果预先准备，见[素材记录](../assets/releases/v0.14.31/PROVENANCE.json)。
-- 当前版的发布材料包括 SHA-256、第三方许可和对应源码。公开附件以 GitHub Releases 为准，已公开的旧版下载见[版本清单](VERSIONS.md)。
+- 当前版的发布材料包括 SHA-256、第三方许可和对应源码，均随 [Windows 安装版](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31-installer)提供。历史构建见[版本清单](VERSIONS.md)。
 
 ## 验证与运行条件
 

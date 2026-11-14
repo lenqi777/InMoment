@@ -35,8 +35,6 @@ InMoment 是一个本地优先的 Windows 桌面工具，把当下的录音、�
 
 **0.14.31 · Windows 11 x64**：[下载 Windows 安装包（EXE）](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)。
 
-旧版下载：[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 历史版本](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [全部发布版本](https://github.com/lenqi777/InMoment/releases)。
-
 1. 双击 `InMoment-Setup-0.14.31-x64.exe`，按向导选择安装目录。
 2. 若缺少 VC++ x64 Runtime，向导会在征得同意后从微软下载。完成后从开始菜单打开 InMoment。
 3. 允许麦克风访问后即可录音，也可以直接新建笔记。完整包内置离线语音转写、本地语义模型和图片 OCR，日常本地功能无需 API Key 或另装 Node.js、pnpm、Python。

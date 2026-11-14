@@ -1,6 +1,6 @@
 # Third-party source locations and library replacement
 
-Updated for InMoment 0.14.31. [GitHub Releases](https://github.com/lenqi777/InMoment/releases) lists published portable packages, source collections, notices, and checksums. This file maps the libraries to their upstream sources and documents replacement steps.
+Updated for InMoment 0.14.31. The [Windows installer release](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31-installer) provides the installer, source collections, notices, and checksums. This file maps the libraries to their upstream sources and documents replacement steps.
 
 ## What the application includes
 

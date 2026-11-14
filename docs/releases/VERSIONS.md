@@ -1,8 +1,8 @@
 # 版本下载说明
 
-当前源码为 0.14.31，已发布的 Windows 安装包及 SHA-256 见 [GitHub Releases](https://github.com/lenqi777/InMoment/releases)。[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0)和 [0.1.0–0.9.0 历史下载](https://github.com/lenqi777/InMoment/releases/tag/history-binaries)继续可用。下方 0.11–0.14.30 为本地构建记录。
+当前源码为 0.14.31，已发布的 Windows 安装包及 SHA-256 见 [GitHub Releases](https://github.com/lenqi777/InMoment/releases)。下方 0.11–0.14.30 为本地构建记录。
 
-普通用户下载对应版本的 Windows 完整包或历史归档附件。GitHub 自动生成的 **Source code** 是源码快照，不能直接作为可运行的 Windows 软件使用。
+要使用软件，请下载 Windows 安装包。GitHub 自动生成的 **Source code** 附件供开发使用。
 
 ## 推荐版本
 
@@ -60,9 +60,9 @@
 
 ## 0.1—0.10 早期版本
 
-这 12 个 ZIP 已于 2026-10-17 发布。0.10.0 为当时的完整便携包；0.1.0—0.9.0 保留归档包及其 `ARCHIVE-NOTICE.txt`。
+这 12 个 ZIP 曾于 2026-10-17 发布，现已停止公开下载。0.10.0 为当时的完整便携包，0.1.0—0.9.0 的归档包附有 `ARCHIVE-NOTICE.txt`。
 
-| 版本 | 主要阶段 | 下载附件 | 语音 / 语义模型 |
+| 版本 | 主要阶段 | 归档文件 | 语音 / 语义模型 |
 | --- | --- | --- | --- |
 | 0.1.0 | 首个记录原型 | InMoment-0.1.0-win-x64-archive.zip | 已附 / 当时尚无该组件 |
 | 0.2.0 | 长按反馈与自动命名 | InMoment-0.2.0-win-x64-archive.zip | 已附 / 当时尚无该组件 |
