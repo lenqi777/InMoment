@@ -1,0 +1,3 @@
+# Keep upstream assets byte-identical for the pinned SHA-256 manifests.
+/src/vendor/katex/** -text
+/src/assets/ui-icons/*.svg -text

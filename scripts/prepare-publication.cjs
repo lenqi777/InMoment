@@ -8,7 +8,7 @@ const { publicationText } = require('./publication-text.cjs');
 const root = path.resolve(__dirname, '..');
 const destination = path.resolve(process.argv[2] || path.join(root, 'release-preparation/delivery/repository'));
 if (destination === root || fs.existsSync(destination)) throw new Error('Choose a new, empty publication directory. Existing directories are never overwritten.');
-const files = ['.env.example', '.gitignore', 'AGENTS.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'README.md', 'README.en.md', 'LICENSE', 'CHANGELOG.md', 'PRIVACY.md', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_SOURCE_OFFER.md', 'CONTRIBUTING.md'];
+const files = ['.env.example', '.gitattributes', '.gitignore', 'AGENTS.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'README.md', 'README.en.md', 'LICENSE', 'CHANGELOG.md', 'PRIVACY.md', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_SOURCE_OFFER.md', 'CONTRIBUTING.md'];
 fs.mkdirSync(destination, { recursive: true });
 for (const file of files) {
   if (file === 'AGENTS.md') fs.writeFileSync(path.join(destination, file), publicationText(file, fs.readFileSync(path.join(root, file), 'utf8')));
