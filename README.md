@@ -4,9 +4,9 @@
 
 [English](README.en.md) · [使用指南](docs/USER_GUIDE.md) · [0.14.31 更新说明](docs/releases/0.14.31.md) · [完整更新记录](CHANGELOG.md) · [产品设计](docs/product/PRODUCT_STORY.md)
 
-[![下载 InMoment 0.14.31 Windows 11 x64 便携包](https://img.shields.io/badge/Windows_11_x64-%E4%B8%8B%E8%BD%BD_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)
+[![下载 InMoment 0.14.31 Windows 11 x64 安装包](https://img.shields.io/badge/Windows_11_x64-%E4%B8%8B%E8%BD%BD_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)
 
-[发布说明](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31) · [SHA-256 校验文件](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/SHA256SUMS-current.txt)
+[发布说明](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31-installer) · [SHA-256 校验文件](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/SHA256SUMS.txt)
 
 InMoment 是一个本地优先的 Windows 桌面工具，把当下的录音、截图和来源整理到可编辑的笔记中。你可以随手写一条，也可以在阅读或工作时说下来，再搜索、分组或导出。想继续讨论时，将笔记、图片和文件带进聊天，最后把有用的回答存回笔记。
 
@@ -33,12 +33,12 @@ InMoment 是一个本地优先的 Windows 桌面工具，把当下的录音、�
 
 ## 下载与开始使用
 
-**0.14.31 · Windows 11 x64**：[下载完整便携包（ZIP）](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)。
+**0.14.31 · Windows 11 x64**：[下载 Windows 安装包（EXE）](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)。
 
 旧版下载：[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 历史版本](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [全部发布版本](https://github.com/lenqi777/InMoment/releases)。
 
-1. 将 `InMoment-0.14.31-win-x64-full.zip` 完整解压到普通本地目录。
-2. 首次运行 `Install-InMoment.cmd`。若缺少 VC++ x64 Runtime，按提示同意下载并完成微软原厂安装。之后运行 `InMoment.exe`，保留旁边的程序文件和离线组件。
+1. 双击 `InMoment-Setup-0.14.31-x64.exe`，按向导选择安装目录。
+2. 若缺少 VC++ x64 Runtime，向导会在征得同意后从微软下载。完成后从开始菜单打开 InMoment。
 3. 允许麦克风访问后即可录音，也可以直接新建笔记。完整包内置离线语音转写、本地语义模型和图片 OCR，日常本地功能无需 API Key 或另装 Node.js、pnpm、Python。
 4. 需要云端 AI 时，打开「偏好设置 → AI 服务」，填写所选服务的 API Key 并授权。实际能力、额度和费用由你的服务账户决定。配置方式见 [AI 服务设置](docs/AI_PROVIDER_SETUP.md)。
 
@@ -57,7 +57,7 @@ GitHub 自动生成的 **Source code** 压缩包供开发使用。[发布状态]
 
 资料、录音、截图和附件保存在当前 Windows 用户的应用数据目录。云端功能默认关闭，截图随 AI 整理发送需要单独授权。原始录音不随笔记 AI 功能上传；主动发送的聊天附件按所选厂商处理。API Key 由 Windows DPAPI 保护，资料库及媒体未整体加密。见[数据说明](PRIVACY.md)与[安全说明](SECURITY.md)。
 
-升级前从托盘退出程序并备份 `%APPDATA%\InMoment`，再把新版解压到新目录。试用旧版时使用独立资料目录。各版本及附件见[版本清单](docs/releases/VERSIONS.md)，[0.14.16 更新说明](docs/releases/0.14.16.md)、[原版操作动图](docs/assets/workflow.gif)与[无音轨演示](docs/assets/inmoment-demo-silent.mp4)作为历史材料保留。
+升级前从托盘退出程序并备份 `%APPDATA%\InMoment`，再运行新版安装向导。试用旧版时使用独立资料目录。各版本及附件见[版本清单](docs/releases/VERSIONS.md)，[0.14.16 更新说明](docs/releases/0.14.16.md)、[原版操作动图](docs/assets/workflow.gif)与[无音轨演示](docs/assets/inmoment-demo-silent.mp4)作为历史材料保留。
 
 ## 开发与验证
 

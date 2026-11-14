@@ -1,12 +1,12 @@
 # 版本下载说明
 
-当前源码为 0.14.31，已发布的便携包及 SHA-256 见 [GitHub Releases](https://github.com/lenqi777/InMoment/releases)。[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0)和 [0.1.0–0.9.0 历史下载](https://github.com/lenqi777/InMoment/releases/tag/history-binaries)继续可用。下方 0.11–0.14.30 为本地构建记录。
+当前源码为 0.14.31，已发布的 Windows 安装包及 SHA-256 见 [GitHub Releases](https://github.com/lenqi777/InMoment/releases)。[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0)和 [0.1.0–0.9.0 历史下载](https://github.com/lenqi777/InMoment/releases/tag/history-binaries)继续可用。下方 0.11–0.14.30 为本地构建记录。
 
 普通用户下载对应版本的 Windows 完整包或历史归档附件。GitHub 自动生成的 **Source code** 是源码快照，不能直接作为可运行的 Windows 软件使用。
 
 ## 推荐版本
 
-**0.14.31：`InMoment-0.14.31-win-x64-full.zip`**，目标为 Windows 11 x64。包含本地 SenseVoiceSmall 转写组件、语义模型、图像 OCR 及生产依赖。解压整个 ZIP 后运行 `Install-InMoment.cmd` 检查依赖，再打开 `InMoment.exe`。安装、AI 服务配置和更新资料见[使用指南](../USER_GUIDE.md)。
+**0.14.31 · Windows 11 x64**。[下载安装包](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)，按向导完成安装，再从开始菜单打开 InMoment。安装包包含本地 SenseVoiceSmall 转写组件、语义模型、图像 OCR 和应用依赖。安装、AI 服务配置和更新资料见[使用指南](../USER_GUIDE.md)。
 
 本地基础功能无需 API Key；可选云端 AI 使用下载者自己的 DeepSeek、OpenAI（GPT）或 Gemini Key，并按服务商实际用量计费。具体服务、授权与截图发送范围见 [AI 服务设置](../AI_PROVIDER_SETUP.md)。
 

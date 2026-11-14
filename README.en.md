@@ -4,9 +4,9 @@
 
 [简体中文](README.md) · [User guide, Chinese](docs/USER_GUIDE.md) · [0.14.31 release notes, Chinese](docs/releases/0.14.31.md) · [Changelog](CHANGELOG.md) · [Product decisions](docs/product/PRODUCT_STORY.md)
 
-[![Download InMoment 0.14.31 portable for Windows 11 x64](https://img.shields.io/badge/Windows_11_x64-Download_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)
+[![Download the InMoment 0.14.31 installer for Windows 11 x64](https://img.shields.io/badge/Windows_11_x64-Download_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)
 
-[Release notes](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31) · [SHA-256 checksums](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/SHA256SUMS-current.txt)
+[Release notes](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31-installer) · [SHA-256 checksums](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/SHA256SUMS.txt)
 
 InMoment is a local-first Windows desktop app that brings recordings, screenshots, and source context into editable notes. Write a note directly or speak a thought while reading or working. Search, group, and export your notes, or bring notes and files into a chat and save useful exchanges back to the library.
 
@@ -33,12 +33,12 @@ Choose DeepSeek, OpenAI (GPT), or Google Gemini for cloud AI. Let InMoment choos
 
 ## Download and run
 
-**0.14.31 · Windows 11 x64**: [Download the full portable package (ZIP)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip). The interface is in Chinese.
+**0.14.31 · Windows 11 x64**: [Download the Windows installer (EXE)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe). The interface is in Chinese.
 
 Older downloads: [0.10.0 full package](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 archives](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [All releases](https://github.com/lenqi777/InMoment/releases).
 
-1. Extract the entire `InMoment-0.14.31-win-x64-full.zip` archive to a local folder.
-2. Run `Install-InMoment.cmd` once. If the VC++ x64 Runtime is missing, setup asks before downloading and opening the official Microsoft installer. Then open `InMoment.exe`, keeping the other app and offline component files alongside it.
+1. Open `InMoment-Setup-0.14.31-x64.exe` and choose the installation folder.
+2. If the VC++ x64 Runtime is missing, setup asks before downloading it from Microsoft. When setup finishes, open InMoment from the Start menu.
 3. Grant microphone permission to record, or create a note directly. The full package includes offline transcription, a local semantic model, and image OCR. Everyday local features require no API key or separate Node.js, pnpm, or Python installation.
 4. For cloud AI, open Settings → AI Services, enter a key for your chosen provider, and enable the permissions you need. Capabilities, quotas, and charges depend on your service account. See [AI service setup](docs/AI_PROVIDER_SETUP.md).
 
@@ -57,7 +57,7 @@ GitHub's automatic **Source code** archives are for development. See [release re
 
 Notes, audio, screenshots and attachments are stored in the current Windows user's application-data directory. Cloud AI starts disabled, and sending screenshots with AI organization requires separate consent. Note AI features do not upload original recordings. Chat attachments you send are handled by the chosen provider. API keys use Windows DPAPI protection; the library and media are not encrypted as a whole. See the [data policy](PRIVACY.md) and [security notes](SECURITY.md).
 
-To upgrade, quit from the tray and back up `%APPDATA%\InMoment`, then extract the new version to a new folder. Use a separate data directory when evaluating an older version. See the [version inventory](docs/releases/VERSIONS.md). The [0.14.16 notes](docs/releases/0.14.16.md), [original animation](docs/assets/workflow.gif), and [silent demo](docs/assets/inmoment-demo-silent.mp4) remain available as historical material.
+To upgrade, quit from the tray and back up `%APPDATA%\InMoment`, then run the installer for the new version. Use a separate data directory when evaluating an older version. See the [version inventory](docs/releases/VERSIONS.md). The [0.14.16 notes](docs/releases/0.14.16.md), [original animation](docs/assets/workflow.gif), and [silent demo](docs/assets/inmoment-demo-silent.mp4) remain available as historical material.
 
 ## Development and validation
 

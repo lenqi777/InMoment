@@ -2,15 +2,15 @@
 
 适用于 **InMoment 0.14.31 · Windows 11 x64**。在「笔记」写下想法、保存录音及来源，也可以把笔记和附件带进 AI 聊天继续讨论。
 
-本页截图为 0.14.31 实际界面，使用合成示例资料及预置 AI 内容，来源见[素材记录](assets/releases/v0.14.31/PROVENANCE.json)。当前发布包处于本地待确认阶段。
+本页截图为 0.14.31 实际界面，使用合成示例资料及预置 AI 内容，来源见[素材记录](assets/releases/v0.14.31/PROVENANCE.json)。
 
 ## 打开与更新
 
-将 `InMoment-0.14.31-win-x64-full.zip` 完整解压到普通本地目录，首次运行 `Install-InMoment.cmd`，按提示完成运行库检查。缺少 VC++ x64 Runtime 时，由你同意后下载并打开微软原厂安装向导。运行库就绪后打开 `InMoment.exe`，保留同目录下的程序文件与组件。完整包已附离线转写、语义检索与图片 OCR 组件，首次安装不需要下载模型或另装 Python。
+[下载 Windows 安装包](https://github.com/lenqi777/InMoment/releases/download/v0.14.31-installer/InMoment-Setup-0.14.31-x64.exe)，打开后按向导选择安装目录。缺少 VC++ x64 Runtime 时，向导会在征得同意后从微软下载。完成后从开始菜单打开 InMoment。安装包已附离线转写、语义检索和图片 OCR 组件，首次安装无需另装 Python 或下载模型。
 
 关闭主窗口后，程序仍在托盘中。更新时先从托盘选择“退出”，再运行新版。已有设置、记录和附件会继续保留。正常资料位于 `%APPDATA%\InMoment`；退出应用后备份整个目录，API Key 受当前 Windows 用户保护，换电脑后应重新填写。历史版本试用请使用独立资料目录，避免降级修改新版资料，详见[版本清单](releases/VERSIONS.md)。
 
-首次系统运行库安装需要联网和可能的管理员授权；之后本地功能可离线使用。此程序尚未签名，下载或启动时 Windows 可能要求确认发布者，受单位策略限制时联系设备管理员。全新 Windows 安装及真实模型效果的验收状态见[发布准备](releases/READINESS.md)。
+首次安装系统运行库需要联网，可能需要管理员授权。完成后，本地功能可离线使用。安装器未签名，Windows 可能要求确认发布者。安装器的 Windows 11 x64 虚拟机验收范围见[安装版 Release](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31-installer)。
 
 ## 写笔记、管理分组与导出
 
