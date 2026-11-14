@@ -4,6 +4,10 @@
 
 [简体中文](README.md) · [User guide, Chinese](docs/USER_GUIDE.md) · [0.14.31 release notes, Chinese](docs/releases/0.14.31.md) · [Changelog](CHANGELOG.md) · [Product decisions](docs/product/PRODUCT_STORY.md)
 
+[![Download InMoment 0.14.31 portable for Windows 11 x64](https://img.shields.io/badge/Windows_11_x64-Download_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)
+
+[Release notes](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31) · [SHA-256 checksums](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/SHA256SUMS-current.txt)
+
 InMoment is a local-first Windows desktop app that brings recordings, screenshots, and source context into editable notes. Write a note directly or speak a thought while reading or working. Search, group, and export your notes, or bring notes and files into a chat and save useful exchanges back to the library.
 
 ![InMoment 0.14.31 notes library and groups](docs/assets/releases/v0.14.31/home.png)
@@ -29,7 +33,9 @@ Choose DeepSeek, OpenAI (GPT), or Google Gemini for cloud AI. Let InMoment choos
 
 ## Download and run
 
-**Current source: 0.14.31 · Windows 11 x64.** See [GitHub Releases](https://github.com/lenqi777/InMoment/releases) for published portable archives, release notes, and checksums. The interface is in Chinese.
+**0.14.31 · Windows 11 x64**: [Download the full portable package (ZIP)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip). The interface is in Chinese.
+
+Older downloads: [0.10.0 full package](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 archives](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [All releases](https://github.com/lenqi777/InMoment/releases).
 
 1. Extract the entire `InMoment-0.14.31-win-x64-full.zip` archive to a local folder.
 2. Run `Install-InMoment.cmd` once. If the VC++ x64 Runtime is missing, setup asks before downloading and opening the official Microsoft installer. Then open `InMoment.exe`, keeping the other app and offline component files alongside it.

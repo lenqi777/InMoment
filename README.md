@@ -4,6 +4,10 @@
 
 [English](README.en.md) · [使用指南](docs/USER_GUIDE.md) · [0.14.31 更新说明](docs/releases/0.14.31.md) · [完整更新记录](CHANGELOG.md) · [产品设计](docs/product/PRODUCT_STORY.md)
 
+[![下载 InMoment 0.14.31 Windows 11 x64 便携包](https://img.shields.io/badge/Windows_11_x64-%E4%B8%8B%E8%BD%BD_0.14.31-256D49?style=for-the-badge)](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)
+
+[发布说明](https://github.com/lenqi777/InMoment/releases/tag/v0.14.31) · [SHA-256 校验文件](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/SHA256SUMS-current.txt)
+
 InMoment 是一个本地优先的 Windows 桌面工具，把当下的录音、截图和来源整理到可编辑的笔记中。你可以随手写一条，也可以在阅读或工作时说下来，再搜索、分组或导出。想继续讨论时，将笔记、图片和文件带进聊天，最后把有用的回答存回笔记。
 
 ![InMoment 0.14.31 的全部笔记与分组](docs/assets/releases/v0.14.31/home.png)
@@ -29,7 +33,9 @@ InMoment 是一个本地优先的 Windows 桌面工具，把当下的录音、�
 
 ## 下载与开始使用
 
-**当前源码：0.14.31 · Windows 11 x64。** 在 [GitHub Releases](https://github.com/lenqi777/InMoment/releases) 查看已发布的完整便携包、版本说明与校验文件。
+**0.14.31 · Windows 11 x64**：[下载完整便携包（ZIP）](https://github.com/lenqi777/InMoment/releases/download/v0.14.31/InMoment-0.14.31-win-x64-full.zip)。
+
+旧版下载：[0.10.0 完整包](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0) · [0.1.0–0.9.0 历史版本](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) · [全部发布版本](https://github.com/lenqi777/InMoment/releases)。
 
 1. 将 `InMoment-0.14.31-win-x64-full.zip` 完整解压到普通本地目录。
 2. 首次运行 `Install-InMoment.cmd`。若缺少 VC++ x64 Runtime，按提示同意下载并完成微软原厂安装。之后运行 `InMoment.exe`，保留旁边的程序文件和离线组件。
