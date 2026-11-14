@@ -1,0 +1,211 @@
+#note-body { display: flow-root; }
+#note-body:has(.note-inline-media) { padding-block-end: calc(1lh + var(--space-2)); }
+#note-body .note-media-clear { clear: both; }
+
+.note-inline-media {
+  --note-media-control-size: var(--control-icon);
+  --note-media-toolbar-width: calc(3 * (var(--note-media-control-size) + var(--space-2)));
+  position: relative;
+  display: block;
+  clear: both;
+  width: var(--note-media-width, fit-content);
+  max-width: 100%;
+  margin-block: var(--space-2);
+  color: var(--color-text);
+  transition: opacity var(--motion-fast);
+}
+
+.note-inline-media-has-preview {
+  --note-media-toolbar-width: calc(4 * (var(--note-media-control-size) + var(--space-2)));
+}
+
+.note-inline-media:is([data-note-media-align="left"], [data-note-media-align="right"]) {
+  clear: none;
+  max-width: min(68%, max(48px, calc(100% - 112px)));
+}
+
+.note-inline-media[data-note-media-align="inline"] {
+  display: inline-block;
+  clear: none;
+  max-width: calc(100% - var(--space-2));
+  margin-block-end: 0;
+  margin-inline-end: var(--space-2);
+  vertical-align: baseline;
+}
+
+.note-inline-media-selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.note-inline-media-caret {
+  position: fixed;
+  z-index: 35;
+  width: 1px;
+  background: var(--color-text);
+  pointer-events: none;
+}
+
+.note-inline-media[data-note-media-align="left"] {
+  float: left;
+  margin-right: var(--space-3);
+}
+
+.note-inline-media[data-note-media-align="right"] {
+  float: right;
+  margin-left: var(--space-3);
+}
+
+.note-inline-media-content {
+  display: block;
+  max-width: 100%;
+}
+
+.note-inline-media-sized .note-media {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+}
+
+.note-inline-media-actions,
+.note-inline-media-corner {
+  position: absolute;
+  z-index: 1;
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popover);
+}
+
+.note-inline-media-video-tools,
+.note-inline-media > .note-inline-media-actions,
+.note-inline-media > .note-inline-media-corner {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast);
+}
+
+.note-inline-media-actions {
+  inset-block-start: 0;
+  inset-inline-start: max(0px, calc(100% - var(--note-media-toolbar-width)));
+  display: flex;
+  width: max-content;
+  gap: var(--space-2);
+  padding: var(--space-1);
+}
+
+.note-inline-media-corner {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  display: flex;
+}
+
+.note-inline-media[data-note-media-align="right"] > .note-inline-media-actions {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+.note-inline-media[data-note-media-align="right"] > .note-inline-media-corner {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+.note-inline-media-video-tools {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: 100%;
+  inset-inline: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+}
+
+.note-inline-media-video-tools > :is(.note-inline-media-actions, .note-inline-media-corner) {
+  position: static;
+}
+
+.note-inline-media-video-tools > .note-inline-media-corner {
+  margin-inline-start: auto;
+}
+
+.note-inline-media[data-note-media-align="right"] > .note-inline-media-video-tools {
+  flex-direction: row-reverse;
+}
+
+.note-inline-media[data-note-media-align="right"] > .note-inline-media-video-tools > .note-inline-media-corner {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+
+.note-inline-media:is(:hover, :focus-within, .note-inline-media-resizing) > :is(.note-inline-media-actions, .note-inline-media-corner, .note-inline-media-video-tools) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.note-inline-media-handle {
+  cursor: grab;
+}
+
+.note-inline-media-handle:active {
+  cursor: grabbing;
+}
+
+.note-inline-media-resize {
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.note-inline-media-resize > .ui-action-icon {
+  transform: rotate(90deg);
+}
+
+.note-inline-media[data-note-media-align="right"] .note-inline-media-resize {
+  cursor: nesw-resize;
+}
+
+.note-inline-media[data-note-media-align="right"] .note-inline-media-resize > .ui-action-icon {
+  transform: rotate(180deg);
+}
+
+.note-inline-media-dragging {
+  opacity: .5;
+}
+
+.note-inline-media-drop {
+  position: fixed;
+  z-index: 35;
+  border-radius: var(--space-1);
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.note-inline-media-drop-line {
+  transform: translateY(-50%);
+}
+
+.note-inline-media-drop-wrap {
+  display: grid;
+  place-content: center;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-button);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--font-small);
+  white-space: nowrap;
+}
+
+@media (pointer: coarse) {
+  .note-inline-media { --note-media-control-size: var(--control-touch); }
+  .note-inline-media > :is(.note-inline-media-actions, .note-inline-media-corner, .note-inline-media-video-tools) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-inline-media, .note-inline-media-actions, .note-inline-media-corner, .note-inline-media-video-tools {
+    transition: none;
+  }
+}

@@ -1,15 +1,17 @@
 'use strict';
 const fs = require('node:fs'); const path = require('node:path');
+const { publicationText } = require('./publication-text.cjs');
 function copyPackageDocuments(root, target) {
   for (const name of ['LICENSE', 'AGENTS.md', 'CONTRIBUTING.md', 'README.md', 'README.en.md', 'CHANGELOG.md', 'PRIVACY.md', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_SOURCE_OFFER.md']) if (fs.existsSync(path.join(root, name))) fs.copyFileSync(path.join(root, name), path.join(target, name));
+  if (fs.existsSync(path.join(root, 'AGENTS.md'))) fs.writeFileSync(path.join(target, 'AGENTS.md'), publicationText('AGENTS.md', fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8')));
   fs.copyFileSync(path.join(root, 'LICENSE'), path.join(target, 'INMOMENT-LICENSE.txt'));
   fs.cpSync(path.join(root, 'docs'), path.join(target, 'docs'), { recursive: true, filter: filename => path.basename(filename) !== 'inmoment-demo.mp4' });
   fs.mkdirSync(path.join(target, 'scripts'), { recursive: true });
   for (const name of ['ux-smoke.cjs', 'batch-results-layout-check.cjs', 'group-management-layout-check.cjs']) fs.copyFileSync(path.join(root, 'scripts', name), path.join(target, 'scripts', name));
-  function visit(directory) {
+  function visit(directory, recursive = true) {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const filename = path.join(directory, entry.name);
-      if (entry.isDirectory()) visit(filename);
+      if (entry.isDirectory()) { if (recursive) visit(filename); }
       else if (/\.md$/u.test(entry.name)) {
         const content = fs.readFileSync(filename, 'utf8').replace(/(\]\()([^\s)]+)(\))/gu, (match, open, url, close) => {
           if (/^[a-z][\w+.-]*:|^#/iu.test(url)) return match;
@@ -24,6 +26,12 @@ function copyPackageDocuments(root, target) {
     }
   }
   visit(path.join(target, 'docs'));
+  visit(target, false);
+  // The packaged source's core README keeps its original relative guide link.
+  // Provide a short guide entry without modifying application source bytes.
+  const guideEntry = path.join(target, 'resources/app/docs');
+  fs.mkdirSync(guideEntry, { recursive: true });
+  fs.writeFileSync(path.join(guideEntry, 'AI_PROVIDER_SETUP.md'), '# AI service setup\n\n[Open the complete user guide](../../../docs/AI_PROVIDER_SETUP.md).\n');
 }
 if (require.main === module) copyPackageDocuments(path.resolve(__dirname, '..'), path.resolve(process.argv[2]));
 module.exports = { copyPackageDocuments };

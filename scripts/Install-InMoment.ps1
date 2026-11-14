@@ -55,7 +55,7 @@ function Read-InMomentYesNo([string]$Message) {
 }
 
 function Assert-InMomentPackage([string]$Directory) {
-    foreach ($name in @('InMoment.exe', 'resources/app/build/native/InMoment.Native.exe', 'offline-asr/asr.json', 'offline-asr/bin/whisper-cli.exe', 'offline-asr/models/ggml-base.bin', 'offline-semantic/.inmoment-semantic-model.json', 'offline-semantic/onnx/model_quantized.onnx')) {
+    foreach ($name in @('InMoment.exe', 'resources/app/build/native/InMoment.Native.exe', 'offline-asr/asr.json', 'offline-asr/bin/sherpa-onnx-offline.exe', 'offline-asr/bin/onnxruntime.dll', 'offline-asr/bin/onnxruntime_providers_shared.dll', 'offline-asr/models/sensevoice.int8.onnx', 'offline-asr/models/tokens.txt', 'offline-semantic/.inmoment-semantic-model.json', 'offline-semantic/onnx/model_quantized.onnx', 'resources/app/offline-ocr/ocr-bundle.json', 'resources/app/offline-ocr/python/python.exe', 'resources/app/offline-ocr/models/PP-OCRv6_det_small.onnx', 'resources/app/offline-ocr/models/PP-OCRv6_rec_small.onnx')) {
         if (-not (Test-Path -LiteralPath (Join-Path $Directory $name) -PathType Leaf)) { throw ('The complete InMoment package is missing: ' + $name + '. Extract the entire release ZIP and retry.') }
     }
 }
@@ -139,12 +139,12 @@ function Invoke-InMomentInstaller([string]$Directory) {
         Assert-InMomentPackage $Directory
         Write-Host ''
         Write-Host 'InMoment 安装引导 - Windows x64'
-        Write-Host '离线语音与语义模型已包含，无需安装开发环境或填写路径；此安装过程不需要 API Key。'
+        Write-Host '完整包内含离线语音、语义模型和图片 OCR，无需另外安装开发工具或下载这些组件。'
         Write-Host '安装过程不会录音、截图、上传资料或调用 AI 模型。'
         $status = Get-InMomentRuntimeStatus
         if (-not $status.Ready) {
             Write-Host ''
-            Write-Host ('Whisper and ONNX need Microsoft Visual C++ x64 runtime ' + $status.RequiredVersion + ' or newer.')
+            Write-Host ('InMoment needs Microsoft Visual C++ x64 runtime ' + $status.RequiredVersion + ' or newer.')
             Write-Host '需要补充微软运行库（约 18 MB）。只有你同意后才从微软官网下载，校验后显示微软原厂许可界面与系统授权提示。'
             Write-Host '此步骤需要联网；离线模型无需再次下载。InMoment 不在下载包中附带微软安装器。'
             if (-not (Read-InMomentYesNo '是否从微软官方下载并打开运行库安装程序？')) {
@@ -158,7 +158,7 @@ function Invoke-InMomentInstaller([string]$Directory) {
         if (Read-InMomentYesNo '是否在桌面创建 InMoment 快捷方式？') { New-InMomentDesktopShortcut $Directory }
         Write-Host ''
         Write-Host '安装完成。请打开 InMoment.exe 或桌面快捷方式。'
-        Write-Host '如需云端 AI，请在设置中填写你自己的 DeepSeek API Key，并同意所需功能。录音与灵感记录保存在本机用户目录。'
+        Write-Host '如需云端 AI，请在设置中选择 DeepSeek、OpenAI 或 Gemini，填写自己的 API Key，并授权所需功能。录音与笔记保存在本机用户目录。'
         Write-Host '录音操作、权限、备份与历史版本说明见 docs/USER_GUIDE.md。'
         return 0
     } catch {

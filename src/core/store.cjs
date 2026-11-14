@@ -16,8 +16,12 @@ function text(value, limit = 1000000) { return String(value ?? '').slice(0, limi
 function topicName(value) {
   if (typeof value !== 'string') throw new Error('Topic name must be text.');
   const name = value.replace(/\s+/gu, ' ').trim();
-  if (!name || [...name].length > 60) throw new Error('Topic name must contain 1–60 characters.');
+  if (!name || [...name].length > 60 || /[\u0000-\u001f\u007f]/u.test(name)) throw new Error('Topic name must contain 1–60 characters.');
   return { name, normalized: name.normalize('NFKC').toLocaleLowerCase() };
+}
+function topicKey(name, parentId) {
+  // Keep legacy root keys while scoping child names to their parent.
+  return parentId ? `\u001f${parentId}\u001f${name}` : name;
 }
 function groupName(value) {
   if (typeof value !== 'string') throw new Error('分组名称必须是文字。');
@@ -74,15 +78,25 @@ class LocalStore {
         record_id TEXT PRIMARY KEY REFERENCES records(id) ON DELETE CASCADE,
         result_json TEXT NOT NULL, updated_at INTEGER NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS transcription_audio_cleanup (
+        record_id TEXT NOT NULL REFERENCES records(id) ON DELETE CASCADE,
+        relative_path TEXT NOT NULL, PRIMARY KEY(record_id,relative_path)
+      );
       CREATE INDEX IF NOT EXISTS idx_records_status_time ON records(status,created_at);
       CREATE INDEX IF NOT EXISTS idx_segments_record ON segments(record_id,ordinal);`);
     // Additive migrations preserve existing records, files, and user configuration.
     const columns = new Set(this.db.prepare('PRAGMA table_info(records)').all().map(column => column.name));
     for (const [name, definition] of [
       ['parent_id', 'TEXT REFERENCES records(id) ON DELETE SET NULL'],
+      ['note_updated_at', 'INTEGER'],
+      ['note_title_edited', 'INTEGER NOT NULL DEFAULT 0'],
       ['content_version', 'INTEGER NOT NULL DEFAULT 1'],
       ['organization_version', 'INTEGER'],
       ['topics_manual', 'INTEGER NOT NULL DEFAULT 0'],
+      ['transcript_override', 'TEXT'],
+      ['keep_audio', 'INTEGER NOT NULL DEFAULT 1'],
+      ['keep_text', 'INTEGER NOT NULL DEFAULT 1'],
+      ['reviewed_audio_order', 'INTEGER NOT NULL DEFAULT 0'],
     ]) if (!columns.has(name)) this.db.exec(`ALTER TABLE records ADD COLUMN ${name} ${definition}`);
     if (!columns.has('organization_version')) this.db.exec('UPDATE records SET organization_version=content_version WHERE organization_json IS NOT NULL');
     this.db.exec(`
@@ -115,6 +129,10 @@ class LocalStore {
       CREATE INDEX IF NOT EXISTS idx_record_topics_topic ON record_topics(topic_id,record_id);
       CREATE INDEX IF NOT EXISTS idx_records_parent ON records(parent_id,status);
       CREATE INDEX IF NOT EXISTS idx_duplicates_status ON duplicate_suggestions(status,created_at);`);
+    if (!this.db.prepare('PRAGMA table_info(topics)').all().some(column => column.name === 'parent_id')) {
+      this.db.exec('ALTER TABLE topics ADD COLUMN parent_id TEXT REFERENCES topics(id) ON DELETE SET NULL');
+    }
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_topics_parent ON topics(parent_id)');
     const groupColumns = new Set(this.db.prepare('PRAGMA table_info(duplicate_groups)').all().map(column => column.name));
     if (!groupColumns.has('name')) this.db.exec("ALTER TABLE duplicate_groups ADD COLUMN name TEXT NOT NULL DEFAULT ''");
     this.ftsAvailable = false;
@@ -142,8 +160,9 @@ class LocalStore {
   row(id) { return this.db.prepare('SELECT * FROM records WHERE id = ?').get(validId(id)); }
   directory(id, status = 'draft') { return this.safePath(path.join(status === 'saved' ? this.recordsDir : this.draftsDir, validId(id))); }
 
-  createDraft({ id = randomUUID(), source = null, createdAt = Date.now(), title = '', task = '', notes = '', parentId = null, topicIds, topicsManual = topicIds !== undefined } = {}) {
+  createDraft({ id = randomUUID(), source = null, createdAt = Date.now(), title = '', task = '', notes = '', parentId = null, topicIds, topicsManual = topicIds !== undefined, keepAudio = true, keepText = true } = {}) {
     validId(id);
+    if (!keepAudio && !keepText) throw new Error('请至少保留录音或文字中的一项。');
     if (this.row(id)) throw new Error('This recording identifier has already been used.');
     if (parentId !== null && this.row(validId(parentId))?.status !== 'saved') throw new Error('A continuation must reference a saved record.');
     const topics = topicIds === undefined ? null : this.validateTopicIds(topicIds);
@@ -153,8 +172,8 @@ class LocalStore {
     try {
       this.db.exec('BEGIN IMMEDIATE');
       try {
-        this.db.prepare('INSERT INTO records(id,status,generation,created_at,title,task,notes,source_json,parent_id,topics_manual) VALUES(?,?,?,?,?,?,?,?,?,?)')
-          .run(id, 'draft', generation, createdAt, text(title, 500), text(task, 10000), text(notes), json(source), parentId, topicsManual ? 1 : 0);
+        this.db.prepare('INSERT INTO records(id,status,generation,created_at,title,task,notes,source_json,parent_id,topics_manual,keep_audio,keep_text) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+          .run(id, 'draft', generation, createdAt, text(title, 500), text(task, 10000), text(notes), json(source), parentId, topicsManual ? 1 : 0, keepAudio ? 1 : 0, keepText ? 1 : 0);
         for (const topicId of topics || []) this.db.prepare('INSERT INTO record_topics(record_id,topic_id,manual) VALUES(?,?,?)').run(id, topicId, topicsManual ? 1 : 0);
         this.db.exec('COMMIT');
       } catch (error) { this.db.exec('ROLLBACK'); throw error; }
@@ -214,6 +233,12 @@ class LocalStore {
     return this.getDraft(id).segments.find(item => item.id === actualId);
   }
 
+  setDraftBackground(id, metadata, token) {
+    const row = this.writable(id, token);
+    const source = parse(row.source_json, null);
+    if (source) this.db.prepare('UPDATE records SET source_json=? WHERE id=?').run(json({ ...source, ...metadata }), id);
+  }
+
   addScreenshot(id, bytes, { ext = 'png', capturedAt = Date.now(), ...metadata } = {}, token) {
     if (!IMAGE_EXTENSIONS.has(ext)) throw new Error('Unsupported screenshot attachment extension.');
     const file = this.writeAttachment(id, 'screenshot', bytes, ext, token);
@@ -238,6 +263,24 @@ class LocalStore {
     return this.get(id);
   }
 
+  removeSilentDraftAudio(id, segmentIds, token) {
+    this.writable(id, token);
+    if (!Array.isArray(segmentIds) || !segmentIds.length) return this.getDraft(id);
+    const draft = this.getDraft(id);
+    const selected = new Set(segmentIds.map(validId));
+    const segments = draft.segments.filter(item => selected.has(item.id));
+    if (segments.length !== selected.size) throw new Error('待清理录音片段已发生变化。');
+    // Delete files first. Failed cleanup remains visible and retryable in this draft.
+    for (const segment of segments) fs.rmSync(this.safePath(segment.path), { force: true });
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.writable(id, token);
+      for (const segment of segments) this.db.prepare('DELETE FROM segments WHERE id=? AND record_id=?').run(segment.id, id);
+      this.bumpContentVersion(id); this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    return this.getDraft(id);
+  }
+
   transcriptChanges(id, transcripts) {
     if (!Array.isArray(transcripts)) throw new Error('Expected segment transcripts.');
     const pending = new Map();
@@ -250,8 +293,9 @@ class LocalStore {
     return [...pending.values()].filter(item => item.transcript !== item.original);
   }
 
-  updateRecord(id, fields = {}, { transcriptSegments, expectedVersion } = {}) {
-    this.db.exec('BEGIN IMMEDIATE');
+  updateRecord(id, fields = {}, { transcriptSegments, expectedVersion, asNote = false } = {}) {
+    const nested = this.db.isTransaction;
+    this.db.exec(nested ? 'SAVEPOINT update_record' : 'BEGIN IMMEDIATE');
     try {
       const row = this.row(id);
       if (!row || !['draft', 'saved'].includes(row.status)) throw new Error('Record is unavailable.');
@@ -259,16 +303,25 @@ class LocalStore {
       // Validate every audio reference before writing any part of an editor save.
       const changes = transcriptSegments === undefined ? [] : this.transcriptChanges(id, transcriptSegments);
       const title = text(fields.title ?? row.title, 500), task = text(fields.task ?? row.task, 10000), notes = text(fields.notes ?? row.notes);
-      const fieldsChanged = title !== row.title || task !== row.task || notes !== row.notes;
-      if (fieldsChanged) this.db.prepare('UPDATE records SET title=?,task=?,notes=? WHERE id=?').run(title, task, notes, id);
+      if (fields.title !== undefined && !title.trim() && !asNote) throw new Error('标题不能为空。');
+      if (fields.transcript !== undefined && typeof fields.transcript !== 'string') throw new Error('原文必须是文字。');
+      const transcriptOverride = fields.transcript === undefined ? row.transcript_override : text(fields.transcript);
+      const overrideChanged = transcriptOverride !== row.transcript_override;
+      const fieldsChanged = title !== row.title || task !== row.task || notes !== row.notes || overrideChanged;
+      const noteTitleChanged = asNote && fields.title !== undefined && !row.note_title_edited;
+      if (fieldsChanged) this.db.prepare('UPDATE records SET title=?,task=?,notes=?,transcript_override=? WHERE id=?').run(title, task, notes, transcriptOverride, id);
+      if (asNote && (fieldsChanged || noteTitleChanged)) this.db.prepare('UPDATE records SET note_updated_at=?,note_title_edited=? WHERE id=?').run(Date.now(), fields.title !== undefined ? 1 : row.note_title_edited, id);
       for (const item of changes) this.db.prepare('UPDATE segments SET transcript=? WHERE id=? AND record_id=?').run(item.transcript, item.id, id);
-      if (fieldsChanged || changes.length) {
-        const titleOnly = title !== row.title && task === row.task && notes === row.notes && changes.length === 0;
+      if (fieldsChanged || noteTitleChanged || changes.length) {
+        const titleOnly = (title !== row.title || noteTitleChanged) && task === row.task && notes === row.notes && !overrideChanged && changes.length === 0;
         this.bumpContentVersion(id, { preserveOrganization: titleOnly });
         if (row.status === 'saved') this.refreshSearch(id);
       }
-      this.db.exec('COMMIT');
-    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+      this.db.exec(nested ? 'RELEASE update_record' : 'COMMIT');
+    } catch (error) {
+      this.db.exec(nested ? 'ROLLBACK TO update_record; RELEASE update_record' : 'ROLLBACK');
+      throw error;
+    }
     return this.get(id);
   }
 
@@ -298,12 +351,68 @@ class LocalStore {
     return { updated, record: this.getRecord(id) };
   }
 
-  complete(id) {
+  setDraftRetention(id, { keepAudio, keepText, transcript }, token) {
+    this.writable(id, token);
+    if (typeof keepAudio !== 'boolean' || typeof keepText !== 'boolean' || !keepAudio && !keepText) throw new Error('请至少保留录音或文字中的一项。');
+    if (transcript !== undefined && (typeof transcript !== 'string' || transcript.length > 1000000)) throw new Error('文字长度超出本地保存上限。');
+    this.db.prepare('UPDATE records SET keep_audio=?,keep_text=?,transcript_override=COALESCE(?,transcript_override) WHERE id=?')
+      .run(keepAudio ? 1 : 0, keepText ? 1 : 0, transcript ?? null, id);
+  }
+
+  stageDraftText(id, transcript, token, reviewedAudioOrder) {
+    this.writable(id, token);
+    if (typeof transcript !== 'string' || transcript.length > 1000000) throw new Error('文字长度超出本地保存上限。');
+    this.db.prepare('UPDATE records SET transcript_override=?,reviewed_audio_order=COALESCE(?,reviewed_audio_order) WHERE id=?')
+      .run(transcript, reviewedAudioOrder ?? null, id);
+  }
+
+  // The journal and text are committed together before the first file is removed.
+  // Recovery can finish any interrupted cleanup without reading audio again.
+  journalAudioRemoval(id, transcript) {
+    if (typeof transcript !== 'string' || !transcript.trim() || transcript.length > 1000000) throw new Error('请先填写要保留的文字。');
+    this.db.prepare('INSERT OR IGNORE INTO transcription_audio_cleanup(record_id,relative_path) SELECT record_id,relative_path FROM segments WHERE record_id=?').run(id);
+    this.db.prepare('UPDATE records SET transcript_override=?,keep_audio=0,keep_text=1,generation=? WHERE id=?').run(transcript, randomUUID(), id);
+    this.db.prepare('DELETE FROM segments WHERE record_id=?').run(id);
+    this.db.prepare('DELETE FROM transcription_runs WHERE record_id=?').run(id);
+    this.db.prepare("DELETE FROM jobs WHERE record_id=? AND kind='transcribe'").run(id);
+    this.bumpContentVersion(id);
+  }
+
+  keepRecordTextOnly(id, transcript, { expectedVersion } = {}) {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const row = this.row(id);
+      if (row?.status !== 'saved') throw new Error('记录不存在。');
+      this.checkExpectedVersion(row, expectedVersion);
+      if (this.db.prepare('SELECT 1 FROM segments WHERE record_id=? LIMIT 1').get(id)) {
+        this.journalAudioRemoval(id, transcript);
+        this.refreshSearch(id);
+      }
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    return this.cleanupTranscriptionAudio(id);
+  }
+
+  complete(id, { transcript } = {}) {
     const row = this.row(id);
     if (!row || ['delete_pending', 'discarded'].includes(row.status)) throw new Error('This draft is unavailable.');
     if (row.status === 'saved') return this.getRecord(id); // Idempotent: double click never duplicates.
     if (!['draft', 'committing'].includes(row.status)) throw new Error('Draft cannot be completed.');
-    this.db.prepare("UPDATE records SET status='committing',generation=? WHERE id=?").run(randomUUID(), id);
+    if (row.status === 'draft') {
+      this.db.exec('BEGIN IMMEDIATE');
+      try {
+        if (!row.keep_text) {
+          this.db.prepare("UPDATE records SET transcript_override='',notes='' WHERE id=?").run(id);
+          this.db.prepare("UPDATE segments SET transcript='' WHERE record_id=?").run(id);
+          this.db.prepare('DELETE FROM transcription_runs WHERE record_id=?').run(id);
+          this.db.prepare("DELETE FROM jobs WHERE record_id=? AND kind='transcribe'").run(id);
+        } else if (!row.keep_audio && this.db.prepare('SELECT 1 FROM segments WHERE record_id=? LIMIT 1').get(id)) this.journalAudioRemoval(id, transcript);
+        else if (transcript !== undefined) this.stageDraftText(id, transcript, this.draftToken(id));
+        this.db.prepare("UPDATE records SET status='committing',generation=? WHERE id=?").run(randomUUID(), id);
+        this.db.exec('COMMIT');
+      } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    }
+    if (!this.cleanupTranscriptionAudio(id).ok) throw new Error('文字已保留，原录音文件仍待清理。请检查本地目录权限后重试完成。');
     const from = this.directory(id);
     const to = this.directory(id, 'saved');
     if (fs.existsSync(from) && !fs.existsSync(to)) fs.renameSync(from, to);
@@ -332,11 +441,12 @@ class LocalStore {
     // Persist cancellation and erase searchable metadata before touching files.
     this.db.exec('BEGIN IMMEDIATE');
     try {
-      this.db.prepare("UPDATE records SET status='delete_pending',generation=?,title='',task='',notes='',source_json=NULL,organization_json=NULL WHERE id=?").run(randomUUID(), id);
+      this.db.prepare("UPDATE records SET status='delete_pending',generation=?,title='',task='',notes='',transcript_override=NULL,source_json=NULL,organization_json=NULL WHERE id=?").run(randomUUID(), id);
       this.db.prepare('DELETE FROM segments WHERE record_id=?').run(id);
       this.db.prepare('DELETE FROM attachments WHERE record_id=?').run(id);
       this.db.prepare('DELETE FROM jobs WHERE record_id=?').run(id);
       this.db.prepare('DELETE FROM transcription_runs WHERE record_id=?').run(id);
+      this.db.prepare('DELETE FROM transcription_audio_cleanup WHERE record_id=?').run(id);
       this.db.prepare('DELETE FROM record_topics WHERE record_id=?').run(id);
       this.db.prepare('DELETE FROM duplicate_suggestions WHERE left_id=? OR right_id=?').run(id, id);
       this.db.prepare('DELETE FROM duplicate_group_members WHERE record_id=?').run(id);
@@ -358,6 +468,12 @@ class LocalStore {
     for (const row of this.db.prepare("SELECT id,status FROM records WHERE status IN ('delete_pending','committing')").all()) {
       try { if (row.status === 'delete_pending') this.remove(row.id); else this.complete(row.id); }
       catch { /* Keep a visible cleanup/commit task for later retry; never silently claim success. */ }
+    }
+    // Retry only audio already authorized and journaled by successful ASR. This
+    // does not inspect or prune segments from existing user records at startup.
+    for (const { record_id: id } of this.db.prepare('SELECT DISTINCT record_id FROM transcription_audio_cleanup').all()) {
+      const cleanup = this.cleanupTranscriptionAudio(id);
+      if (this.getRecord(id)?.keepAudio) this.setJob(id, 'transcribe', cleanup.ok ? 'done' : 'failed', cleanup.ok ? null : '未识别为语音的音频仍待清理，请检查本地目录权限后重启重试。');
     }
   }
 
@@ -413,28 +529,125 @@ class LocalStore {
   }
 
   listTopics() {
-    return this.db.prepare(`SELECT t.id,t.name,t.created_at AS createdAt,
+    return this.db.prepare(`SELECT t.id,t.name,t.parent_id AS parentId,t.created_at AS createdAt,
       COUNT(CASE WHEN r.status='saved' THEN 1 END) AS recordCount
       FROM topics t LEFT JOIN record_topics rt ON rt.topic_id=t.id LEFT JOIN records r ON r.id=rt.record_id
       GROUP BY t.id ORDER BY t.normalized_name,t.id`).all().map(row => ({ ...row }));
   }
 
-  createTopic(name) {
-    const item = topicName(name), existing = this.db.prepare('SELECT id,name,created_at AS createdAt FROM topics WHERE normalized_name=?').get(item.normalized);
+  topicTree(topicIds) {
+    const ids = this.bulkTopicIds(topicIds);
+    const groups = new Map(this.db.prepare('SELECT id,name,parent_id AS parentId FROM topics ORDER BY normalized_name,id').all().map(row => [row.id, row]));
+    for (const id of ids) if (!groups.has(id)) throw new Error('Topic is unavailable.');
+    return { ids, groups };
+  }
+
+  topicSubtreeIds(topicIds) {
+    const { ids, groups } = this.topicTree(topicIds);
+    const selected = new Set(ids);
+    const roots = ids.filter(id => {
+      for (let parent = groups.get(id).parentId; parent; parent = groups.get(parent).parentId) if (selected.has(parent)) return false;
+      return true;
+    });
+    const children = new Map();
+    for (const { id, parentId } of groups.values()) {
+      if (!children.has(parentId)) children.set(parentId, []);
+      children.get(parentId).push(id);
+    }
+    const result = [];
+    const pending = roots.reverse();
+    while (pending.length) {
+      const id = pending.pop();
+      result.push(id);
+      const nested = children.get(id) || [];
+      for (let index = nested.length - 1; index >= 0; index--) pending.push(nested[index]);
+    }
+    return result;
+  }
+
+  editTopics(edit) {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = edit();
+      this.db.exec('COMMIT');
+      return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+
+  topicNameExists(name, parentId, exceptId = '') {
+    const key = topicKey(topicName(name).normalized, parentId);
+    return Boolean(this.db.prepare('SELECT id FROM topics WHERE normalized_name=? AND id<>?').get(key, exceptId));
+  }
+
+  uniqueTopicName(name, parentId, suffix = '', exceptId = '') {
+    if (!this.topicNameExists(name, parentId, exceptId)) return name;
+    for (let index = 1; ; index++) {
+      const ending = index === 1 && suffix ? suffix : `${suffix} (${index + 1})`;
+      const candidate = [...name].slice(0, 60 - ending.length).join('') + ending;
+      if (!this.topicNameExists(candidate, parentId, exceptId)) return candidate;
+    }
+  }
+
+  updateTopicParent(group, parentId, { renameConflict = false } = {}) {
+    if (group.parentId === parentId) return;
+    const name = renameConflict ? this.uniqueTopicName(group.name, parentId, '', group.id) : group.name;
+    if (this.topicNameExists(name, parentId, group.id)) throw new Error('目标分组中已有同名分组，请先重命名。');
+    this.db.prepare('UPDATE topics SET parent_id=?,name=?,normalized_name=? WHERE id=?')
+      .run(parentId, name, topicKey(topicName(name).normalized, parentId), group.id);
+    if (name !== group.name) for (const row of this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(group.id)) this.refreshSearch(row.record_id);
+  }
+
+  moveTopic(id, parentId = null) {
+    const { groups } = this.topicTree(parentId === null ? [id] : [id, parentId]);
+    for (let parent = parentId; parent; parent = groups.get(parent).parentId) {
+      if (parent === id) throw new Error('不能将分组移动到自身或它的子分组。');
+    }
+    this.editTopics(() => this.updateTopicParent(groups.get(id), parentId));
+    return this.listTopics().find(item => item.id === id);
+  }
+
+  copyTopicStructure(topicIds, parentId = undefined) {
+    const ordered = this.topicSubtreeIds(topicIds);
+    const { groups } = this.topicTree(topicIds);
+    if (parentId != null && !groups.has(parentId)) throw new Error('Topic is unavailable.');
+    return this.editTopics(() => {
+      const mapping = new Map();
+      const roots = [];
+      for (const id of ordered) {
+        const group = groups.get(id);
+        const copiedParent = mapping.get(group.parentId);
+        const target = copiedParent || (parentId === undefined ? group.parentId : parentId);
+        const copy = this.createTopic(this.uniqueTopicName(group.name, target, ' 副本'), target);
+        mapping.set(id, copy.id);
+        if (!copiedParent) roots.push(copy.id);
+      }
+      return { mapping, roots };
+    });
+  }
+
+  mergeNoteTopic(sourceId, targetId) {
+    if (!this.db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='note_topics'").get()) return;
+    this.db.prepare(`INSERT OR IGNORE INTO note_topics(note_id,topic_id)
+      SELECT note_id,? FROM note_topics WHERE topic_id=?`).run(targetId, sourceId);
+  }
+
+  createTopic(name, parentId = null) {
+    if (parentId !== null) this.validateTopicIds([parentId]);
+    const item = topicName(name), key = topicKey(item.normalized, parentId);
+    const existing = this.db.prepare('SELECT id,name,parent_id AS parentId,created_at AS createdAt FROM topics WHERE normalized_name=?').get(key);
     if (existing) return { ...existing, recordCount: this.countRecords({ topicIds: [existing.id] }) };
-    const result = { id: randomUUID(), name: item.name, createdAt: Date.now(), recordCount: 0 };
-    this.db.prepare('INSERT INTO topics(id,name,normalized_name,created_at) VALUES(?,?,?,?)').run(result.id, result.name, item.normalized, result.createdAt);
+    const result = { id: randomUUID(), name: item.name, parentId, createdAt: Date.now(), recordCount: 0 };
+    this.db.prepare('INSERT INTO topics(id,name,normalized_name,created_at,parent_id) VALUES(?,?,?,?,?)').run(result.id, result.name, key, result.createdAt, parentId);
     return result;
   }
 
   renameTopic(id, name) {
-    const item = topicName(name), topic = this.db.prepare('SELECT id FROM topics WHERE id=?').get(validId(id));
+    const item = topicName(name), topic = this.db.prepare('SELECT id,parent_id AS parentId FROM topics WHERE id=?').get(validId(id));
     if (!topic) throw new Error('Topic is unavailable.');
-    const duplicate = this.db.prepare('SELECT id FROM topics WHERE normalized_name=? AND id<>?').get(item.normalized, id);
-    if (duplicate) throw new Error('This topic already exists; merge the topics instead.');
+    if (this.topicNameExists(item.name, topic.parentId, id)) throw new Error('This topic already exists; merge the topics instead.');
     this.db.exec('BEGIN IMMEDIATE');
     try {
-      this.db.prepare('UPDATE topics SET name=?,normalized_name=? WHERE id=?').run(item.name, item.normalized, id);
+      this.db.prepare('UPDATE topics SET name=?,normalized_name=? WHERE id=?').run(item.name, topicKey(item.normalized, topic.parentId), id);
       for (const row of this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(id)) this.refreshSearch(row.record_id);
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
@@ -445,66 +658,67 @@ class LocalStore {
     validId(sourceId); validId(targetId);
     this.validateTopicIds([sourceId, targetId]);
     if (sourceId === targetId) return this.listTopics().find(item => item.id === targetId);
-    this.db.exec('BEGIN IMMEDIATE');
-    try {
-      const affected = this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(sourceId);
-      this.db.prepare(`INSERT INTO record_topics(record_id,topic_id,manual)
-        SELECT record_id,?,manual FROM record_topics WHERE topic_id=?
-        ON CONFLICT(record_id,topic_id) DO UPDATE SET manual=MAX(manual,excluded.manual)`).run(targetId, sourceId);
-      this.db.prepare('DELETE FROM topics WHERE id=?').run(sourceId);
-      for (const row of affected) this.refreshSearch(row.record_id);
-      this.db.exec('COMMIT');
-    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
-    return this.listTopics().find(item => item.id === targetId);
+    return this.mergeTopics([sourceId, targetId], targetId).topic;
   }
 
   deleteTopic(id) {
-    validId(id);
-    this.db.exec('BEGIN IMMEDIATE');
-    try {
-      const affected = this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(id);
-      this.db.prepare('DELETE FROM topics WHERE id=?').run(id);
-      for (const row of affected) this.refreshSearch(row.record_id);
-      this.db.exec('COMMIT');
-    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    this.deleteTopics([id]);
     return { id, deleted: true };
   }
 
   mergeTopics(topicIds, targetId) {
-    const ids = this.bulkTopicIds(topicIds); validId(targetId);
+    const { ids, groups } = this.topicTree(topicIds); validId(targetId);
     if (ids.length < 2 || !ids.includes(targetId)) throw new Error('Choose at least two groups and keep one selected group.');
-    this.db.exec('BEGIN IMMEDIATE');
-    try {
-      for (const id of ids) if (!this.db.prepare('SELECT id FROM topics WHERE id=?').get(id)) throw new Error('Topic is unavailable.');
-      const affected = new Set();
-      for (const id of ids) {
-        if (id === targetId) continue;
-        for (const row of this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(id)) affected.add(row.record_id);
-        this.db.prepare(`INSERT INTO record_topics(record_id,topic_id,manual)
-          SELECT record_id,?,manual FROM record_topics WHERE topic_id=?
-          ON CONFLICT(record_id,topic_id) DO UPDATE SET manual=MAX(manual,excluded.manual)`).run(targetId, id);
-        this.db.prepare('DELETE FROM topics WHERE id=?').run(id);
+    const mergedIds = ids.filter(id => id !== targetId);
+    const removing = new Set(mergedIds);
+    this.editTopics(() => {
+      const target = groups.get(targetId);
+      let nextParent = target.parentId;
+      // Move a descendant target outside the removed branch before adopting its children.
+      for (let parent = target.parentId; parent; parent = groups.get(parent).parentId) {
+        if (removing.has(parent)) nextParent = groups.get(parent).parentId;
       }
-      for (const id of affected) this.refreshSearch(id);
-      this.db.exec('COMMIT');
-    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
-    return { topic: this.listTopics().find(item => item.id === targetId), mergedIds: ids.filter(id => id !== targetId) };
+      this.updateTopicParent(target, nextParent, { renameConflict: true });
+      for (const group of groups.values()) {
+        if (group.id !== targetId && !removing.has(group.id) && removing.has(group.parentId)) this.updateTopicParent(group, targetId, { renameConflict: true });
+      }
+      this.removeTopicMemberships(mergedIds, () => targetId);
+    });
+    return { topic: this.listTopics().find(item => item.id === targetId), mergedIds };
   }
 
-  deleteTopics(topicIds) {
-    const ids = this.bulkTopicIds(topicIds);
-    this.db.exec('BEGIN IMMEDIATE');
-    try {
-      for (const id of ids) if (!this.db.prepare('SELECT id FROM topics WHERE id=?').get(id)) throw new Error('Topic is unavailable.');
-      const affected = new Set();
-      for (const id of ids) {
-        for (const row of this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(id)) affected.add(row.record_id);
-        this.db.prepare('DELETE FROM topics WHERE id=?').run(id);
+  deleteTopics(topicIds, { includeDescendants = false } = {}) {
+    const { ids: requested, groups } = this.topicTree(topicIds);
+    const ids = includeDescendants ? this.topicSubtreeIds(requested) : requested;
+    const removing = new Set(ids);
+    const survivingParent = id => {
+      let parent = groups.get(id).parentId;
+      while (parent && removing.has(parent)) parent = groups.get(parent).parentId;
+      return parent;
+    };
+    this.editTopics(() => {
+      for (const group of groups.values()) {
+        if (!removing.has(group.id) && removing.has(group.parentId)) this.updateTopicParent(group, survivingParent(group.id), { renameConflict: true });
       }
-      for (const id of affected) this.refreshSearch(id);
-      this.db.exec('COMMIT');
-    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+      this.removeTopicMemberships(ids, includeDescendants ? () => null : survivingParent);
+    });
     return { ids, deleted: true };
+  }
+
+  removeTopicMemberships(ids, resolveTarget) {
+    const affected = new Set();
+    for (const id of ids) {
+      for (const row of this.db.prepare('SELECT record_id FROM record_topics WHERE topic_id=?').all(id)) affected.add(row.record_id);
+      const target = resolveTarget(id);
+      if (target) {
+        this.db.prepare(`INSERT INTO record_topics(record_id,topic_id,manual)
+          SELECT record_id,?,manual FROM record_topics WHERE topic_id=?
+          ON CONFLICT(record_id,topic_id) DO UPDATE SET manual=MAX(manual,excluded.manual)`).run(target, id);
+        this.mergeNoteTopic(id, target);
+      }
+    }
+    for (const id of ids) this.db.prepare('DELETE FROM topics WHERE id=?').run(id);
+    for (const id of affected) this.refreshSearch(id);
   }
 
   bulkTopicIds(topicIds) {
@@ -536,6 +750,16 @@ class LocalStore {
     return this.get(id);
   }
 
+  addRecordTopic(id, topicId) {
+    const record = this.getRecord(id);
+    if (!record) throw new Error('这条笔记已不存在。');
+    this.validateTopicIds([...record.topics.map(topic => topic.id).filter(value => value !== topicId), topicId]);
+    this.db.prepare(`INSERT INTO record_topics(record_id,topic_id,manual) VALUES(?,?,1)
+      ON CONFLICT(record_id,topic_id) DO UPDATE SET manual=1`).run(id, topicId);
+    this.db.prepare('UPDATE records SET topics_manual=1 WHERE id=?').run(id);
+    this.refreshSearch(id);
+  }
+
   checkExpectedVersion(row, expectedVersion) {
     if (expectedVersion !== undefined && (!Number.isSafeInteger(expectedVersion) || row.content_version !== expectedVersion)) {
       const error = new Error('Record content changed; the AI result is stale.');
@@ -558,9 +782,11 @@ class LocalStore {
     const parent = row.parent_id ? this.db.prepare("SELECT id,title FROM records WHERE id=? AND status='saved'").get(row.parent_id) : null;
     return {
       id: row.id, status: row.status, createdAt: row.created_at, completedAt: row.completed_at, title: row.title, task: row.task, notes: row.notes,
+      noteUpdatedAt: row.note_updated_at, noteTitleEdited: Boolean(row.note_title_edited),
       source: parse(row.source_json), organization: parse(row.organization_json), organizationStale: Boolean(row.organization_json && row.organization_version !== row.content_version),
       contentVersion: row.content_version, version: row.content_version, topics, topicsManual: Boolean(row.topics_manual), parentId: parent?.id || null, parentTitle: parent?.title || '', continuations, duplicateGroupId: group?.group_id || null,
-      segments, screenshots, transcript: segments.map(item => item.transcript).filter(Boolean).join('\n'), durationMs: segments.reduce((sum, item) => sum + item.durationMs, 0),
+      segments, screenshots, keepAudio: Boolean(row.keep_audio), keepText: Boolean(row.keep_text), reviewedAudioOrder: row.reviewed_audio_order, audioCleanupPending: Boolean(this.db.prepare('SELECT 1 FROM transcription_audio_cleanup WHERE record_id=? LIMIT 1').get(row.id)),
+      hasTranscriptOverride: row.transcript_override !== null, transcript: row.transcript_override === null ? segments.map(item => item.transcript).filter(Boolean).join('\n') : row.transcript_override, durationMs: segments.reduce((sum, item) => sum + item.durationMs, 0),
       transcription: transcriptionRun ? parse(transcriptionRun.result_json) : null,
       jobs: this.db.prepare('SELECT kind,status,error,updated_at AS updatedAt FROM jobs WHERE record_id=?').all(row.id).map(item => ({ ...item })),
     };
@@ -727,6 +953,73 @@ class LocalStore {
       .run(id, json(result), Date.now());
   }
 
+  cleanupTranscriptionAudio(id) {
+    validId(id);
+    const row = this.row(id);
+    const bucket = row?.status === 'saved' || (row?.status === 'committing' && fs.existsSync(this.directory(id, 'saved'))) ? this.recordsDir : this.draftsDir;
+    let remaining = 0;
+    for (const item of this.db.prepare('SELECT relative_path FROM transcription_audio_cleanup WHERE record_id=?').all(id)) {
+      try {
+        fs.rmSync(this.safePath(path.join(bucket, item.relative_path)), { force: true });
+        this.db.prepare('DELETE FROM transcription_audio_cleanup WHERE record_id=? AND relative_path=?').run(id, item.relative_path);
+      } catch { remaining++; }
+    }
+    return { ok: remaining === 0, remaining };
+  }
+
+  applyTranscriptionResult(id, result, { expectedGeneration, expectedSegments, expectedContentVersion, clearTranscriptOverride = false, retainSilentAudio = false }) {
+    const hasSpeech = value => typeof value === 'string' && /[\p{L}\p{N}]/u.test(value);
+    const signature = segments => JSON.stringify(segments.map(segment => [segment.id, segment.transcript]));
+    let removedIds = [];
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const row = this.row(id);
+      if (row?.status !== 'saved' || row.generation !== expectedGeneration) throw Object.assign(new Error('录音已删除或保存状态已改变。'), { code: 'STALE_RECORD' });
+      const current = this.getRecord(id);
+      if (signature(current.segments) !== signature(expectedSegments) || expectedContentVersion !== undefined && current.version !== expectedContentVersion) { this.db.exec('COMMIT'); return { applied: false, removedIds, cleanup: { ok: true, remaining: 0 } }; }
+      if (!Array.isArray(result.segments) || result.segments.length !== current.segments.length) throw new Error('转写结果缺少对应的录音片段。');
+      const recognized = new Map();
+      for (const segment of result.segments) {
+        const segmentId = segment.id || segment.segmentId;
+        if (recognized.has(segmentId) || !current.segments.some(item => item.id === segmentId) || typeof (segment.text ?? segment.transcript) !== 'string') throw new Error('转写结果的录音片段无效。');
+        recognized.set(segmentId, (segment.text ?? segment.transcript).trim());
+      }
+      const retained = [];
+      for (const segment of current.segments) {
+        const value = recognized.get(segment.id);
+        if (!retainSilentAudio && !hasSpeech(value) && !hasSpeech(segment.transcript)) {
+          const file = this.db.prepare('SELECT relative_path FROM segments WHERE id=? AND record_id=?').get(segment.id, id);
+          this.safePath(path.join(this.recordsDir, file.relative_path));
+          this.db.prepare('INSERT OR IGNORE INTO transcription_audio_cleanup(record_id,relative_path) VALUES(?,?)').run(id, file.relative_path);
+          this.db.prepare('DELETE FROM segments WHERE id=? AND record_id=?').run(segment.id, id);
+          removedIds.push(segment.id);
+        } else retained.push({ ...segment, transcript: hasSpeech(value) ? value : segment.transcript });
+      }
+      let changed = removedIds.length > 0;
+      if (clearTranscriptOverride && current.hasTranscriptOverride) { this.db.prepare('UPDATE records SET transcript_override=NULL WHERE id=?').run(id); changed = true; }
+      for (const [index, segment] of retained.entries()) {
+        changed ||= segment.order !== index + 1 || current.segments.find(item => item.id === segment.id).transcript !== segment.transcript;
+        this.db.prepare('UPDATE segments SET ordinal=?,transcript=? WHERE id=? AND record_id=?').run(index + 1, segment.transcript, segment.id, id);
+      }
+      const retainedIds = new Set(retained.map(segment => segment.id));
+      const audioDurationMs = retained.reduce((sum, segment) => sum + segment.durationMs, 0);
+      const normalized = { ...result, segments: retained.map(segment => ({ id: segment.id, text: segment.transcript })),
+        timings: (result.timings || []).filter(item => retainedIds.has(item.segmentId) && hasSpeech(item.text)),
+        text: retained.map(segment => segment.transcript).filter(Boolean).join('\n'), audioDurationMs,
+        rtf: audioDurationMs > 0 && Number.isFinite(result.durationMs) ? result.durationMs / audioDurationMs : null,
+        status: retained.some(segment => hasSpeech(segment.transcript)) ? 'recognized' : 'no-speech-recognized' };
+      this.saveTranscription(id, normalized);
+      if (changed) this.bumpContentVersion(id);
+      // Invalidate callbacks that captured the old set of audio before cleanup.
+      if (removedIds.length) this.db.prepare('UPDATE records SET generation=? WHERE id=?').run(randomUUID(), id);
+      this.refreshSearch(id);
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    // Only files explicitly journaled by this successful transaction are removed.
+    // Failed removal stays owned and can be retried by the user's next transcribe.
+    return { applied: true, removedIds, cleanup: this.cleanupTranscriptionAudio(id) };
+  }
+
   setJob(id, kind, status, error = null) {
     if (this.row(id)?.status !== 'saved') throw new Error('Only saved records can be processed.');
     this.db.prepare('INSERT INTO jobs(record_id,kind,status,error,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(record_id,kind) DO UPDATE SET status=excluded.status,error=excluded.error,updated_at=excluded.updated_at')
@@ -734,8 +1027,8 @@ class LocalStore {
   }
 
   searchable(record) {
-    return [record.title, record.task, record.notes, record.source?.title, record.source?.windowTitle, record.source?.appName, record.source?.url,
-      ...record.segments.map(item => item.transcript), ...(record.topics || []).map(topic => topic.name), record.organization && !record.organizationStale ? JSON.stringify(record.organization) : ''].filter(Boolean).join('\n').toLocaleLowerCase();
+    return [record.title, record.task, !record.hasTranscriptOverride && record.notes, record.source?.title, record.source?.windowTitle, record.source?.appName, record.source?.url,
+      ...(record.hasTranscriptOverride ? [record.transcript] : record.segments.map(item => item.transcript)), ...(record.topics || []).map(topic => topic.name), record.organization && !record.organizationStale ? JSON.stringify(record.organization) : ''].filter(Boolean).join('\n').toLocaleLowerCase();
   }
 
   refreshSearch(id) {

@@ -7,6 +7,8 @@ const vm = require('node:vm');
 const { createRequire } = require('node:module');
 const { LocalStore } = require('../src/core/store.cjs');
 const { Settings } = require('../src/main/settings.cjs');
+const { DEFAULT_REGION_SHORTCUT } = require('../src/main/region-shortcut.cjs');
+const { NotesStore } = require('../src/main/notes.cjs');
 
 // Exercise real IPC handlers with an isolated database, inert Electron lifecycle,
 // mock confirmation dialogs and an injected AI class. No desktop or network starts.
@@ -21,19 +23,21 @@ function fixture(t, options = {}) {
     t.mock.method(transport, 'get', denyNetwork);
   }
   const root = fs.mkdtempSync(path.join(__dirname, '.tmp-main-library-'));
-  const store = new LocalStore(root); const calls = []; const groupingCalls = []; const dialogs = []; const osActions = []; const events = [];
+  const store = new LocalStore(root); const calls = []; const groupingCalls = []; const noteAICalls = []; const dialogs = []; const osActions = []; const events = [];
   const settings = new Settings(root, { decryptString: () => 'mock-only', isEncryptionAvailable: () => true, encryptString: () => Buffer.from('opaque-fixture') });
   settings.value = { ...settings.value, cloudEnabled: true, aiSearchEnabled: true, aiSearchConsentVersion: 1, duplicateAnalysisEnabled: true, duplicateAnalysisConsentVersion: 1, screenshotAnalysisEnabled: true, screenshotAnalysisConsentVersion: 1, apiKeyEncrypted: 'opaque-fixture', ...options.settings };
+  if (options.settings?.model !== undefined) settings.value.aiProfiles.deepseek.model = options.settings.model;
   const callbacks = new Map();
   const electron = {
     app: { setName() {}, setAppUserModelId() {}, requestSingleInstanceLock: () => true, whenReady: () => new Promise(() => {}), on(name, callback) { callbacks.set(name, callback); }, getVersion: () => 'test', setPath() {}, getPath: () => root, quit() {} },
     protocol: { registerSchemesAsPrivileged() {} },
+    globalShortcut: options.globalShortcut,
     dialog: { async showMessageBox(_window, value) { dialogs.push(value); return { response: options.approve === false ? 0 : 1 }; } },
-    shell: { async openPath(filename) { osActions.push(filename); return ''; } },
+    shell: { async openPath(filename) { osActions.push(filename); return ''; }, async openExternal(url) { osActions.push(url); } },
   };
   const filename = path.join(__dirname, '../src/main/main.cjs'); const localRequire = createRequire(filename);
   class MockDeepSeek {
-    constructor(value) { this.model = value.model; }
+    constructor(value) { this.provider = value.provider || 'deepseek'; this.model = value.model; }
     async organize(record, opts) {
       calls.push({ record, opts });
       if (options.organize) return options.organize(record, opts);
@@ -44,10 +48,15 @@ function fixture(t, options = {}) {
       if (options.classifyBatch) return options.classifyBatch(records, opts);
       return { schemaVersion: 1, groups: [{ name: '共同主题', reason: '本批记录具有相同的主题', records: records.map(({ id, version }) => ({ id, version })) }], unassigned: [], usage: { totalTokens: 20 } };
     }
+    async requestJson(system, payload, opts) {
+      noteAICalls.push({ system, payload, opts });
+      if (options.noteAI) return options.noteAI(payload, opts);
+      return { value: { text: '本地模拟生成内容' } };
+    }
   }
   let cloudPermissions;
   const context = vm.createContext({
-    require(name) { if (name === 'electron') return electron; if (name === '../core/deepseek.cjs') return { DeepSeekClient: MockDeepSeek }; if (name === './cloud-permissions.cjs') return cloudPermissions; if (name === './semantic-service.cjs') return { createSemanticService() { throw new Error('not started in integration test'); } }; return localRequire(name); },
+    require(name) { if (name === 'electron') return electron; if (name === '../core/ai-client.cjs') return { createAIClient: options => new MockDeepSeek(options) }; if (name === '../core/deepseek.cjs') return { DeepSeekClient: MockDeepSeek }; if (name === './cloud-permissions.cjs') return cloudPermissions; if (name === './semantic-service.cjs') return { createSemanticService() { throw new Error('not started in integration test'); } }; return localRequire(name); },
     __dirname: path.dirname(filename), process: { platform: 'win32', env: options.networkDisabled ? { INMOMENT_DISABLE_NETWORK: '1' } : {}, execPath: process.execPath },
     Buffer, URL, Response, AbortController, Promise, console, fetch: denyNetwork,
   });
@@ -56,19 +65,247 @@ function fixture(t, options = {}) {
   const permissionModule = { exports: {} };
   vm.runInContext('(function(module, exports) {\n' + fs.readFileSync(path.join(path.dirname(filename), 'cloud-permissions.cjs'), 'utf8') + '\n})', context)(permissionModule, permissionModule.exports);
   cloudPermissions = permissionModule.exports;
-  vm.runInContext(fs.readFileSync(filename, 'utf8') + '\n globalThis.integration = { invoke, publicRecord, bootstrap, init(deps) { store=deps.store; settings=deps.settings; controller=deps.controller; autoTitles=deps.autoTitles; libraryAI=deps.libraryAI; semantic=deps.semantic; offlineASR={cleanupRecordJobs:()=>({ok:true}),capabilities:()=>({available:false})}; mainWindow=deps.mainWindow; uiDialogs=deps.uiDialogs; } };', context);
-  const controller = { snapshot: () => ({ active: false }), emitState() {}, refreshTrigger: async () => {}, session: {} };
+  vm.runInContext(fs.readFileSync(filename, 'utf8') + '\n globalThis.integration = { invoke, publicRecord, bootstrap, captureShortcutInput, cancelShortcutCapture, startShortcut() { return capabilities.regionScreenshot = regionShortcut.start(settings.public().regionScreenshotShortcut); }, init(deps) { store=deps.store; notes=deps.notes; noteAI=new NoteAI({ notes, prepareRequest:prepareNoteAI }); settings=deps.settings; controller=deps.controller; autoTitles=deps.autoTitles; libraryAI=deps.libraryAI; semantic=deps.semantic; offlineASR={cleanupRecordJobs:deps.cleanupRecordJobs,capabilities:()=>({available:false})}; mainWindow=deps.mainWindow; uiDialogs=deps.uiDialogs; } };', context);
+  const controller = { snapshot: () => ({ active: false }), emitState() {}, refreshTrigger: async () => {}, removeStagedAudio() {}, session: {} };
   const autoTitles = { run: async () => {}, cancel() {}, cancelAll() {} };
-  const mainWindow = { isDestroyed: () => false, isMinimized: () => false, show() {}, focus() {}, webContents: { send(_channel, message) { events.push(message); } } };
+  const mainWindow = { isDestroyed: () => false, isMinimized: () => false, isFocused: () => true, show() {}, focus() {}, webContents: { send(_channel, message) { events.push(message); } } };
   const libraryAI = options.libraryAI || { clearCache() {}, async search() { throw new Error('unexpected mock task'); } };
   const uiDialogs = { async showMessageBox(value) { dialogs.push(value); return { response: options.approve === false ? 0 : 1 }; } };
-  context.integration.init({ store, settings, controller, autoTitles, libraryAI, mainWindow, uiDialogs, semantic: options.semantic });
+  context.integration.init({ store, notes: new NotesStore(store), settings, controller, autoTitles, libraryAI, mainWindow, uiDialogs, semantic: options.semantic, cleanupRecordJobs: options.cleanupRecordJobs || (() => ({ ok: true })) });
   t.after(() => { store.close(); fs.rmSync(root, { recursive: true, force: true }); });
   function record(id = 'one', { audio = true } = {}) {
     store.createDraft({ id }); if (audio) store.addSegment(id, { id: `${id}-segment`, bytes: Buffer.from('synthetic audio'), transcript: '保存灵感发生时的理由' }); return store.complete(id);
   }
-  return { root, store, settings, calls, groupingCalls, dialogs, osActions, events, controller, ...context.integration, record };
+  return { root, store, settings, calls, groupingCalls, noteAICalls, dialogs, osActions, events, controller, mainWindow, quit: callbacks.get('will-quit'), ...context.integration, record };
 }
+
+test('note AI click uses the saved source and configured screenshot consent, while selected actions send only selected text', async t => {
+  const fx = fixture(t, { settings: { directAIEnabled: false } });
+  const record = 'note-ai-ipc';
+  const id = `record:${record}`;
+  const png = Buffer.alloc(24);
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png);
+  png.write('IHDR', 12);
+  png.writeUInt32BE(100, 16);
+  png.writeUInt32BE(100, 20);
+  fx.store.createDraft({ id: record, notes: '第一段。\n第二段。', source: { url: 'https://example.test/source' } });
+  fx.store.addScreenshot(record, png, { method: 'region' });
+  fx.store.complete(record);
+
+  const { note, summary } = await fx.invoke('notes:aiSummary', { id });
+  assert.equal(summary.body, '本地模拟生成内容');
+  assert.equal(note.body, '第一段。\n第二段。');
+  assert.equal((await fx.invoke('notes:get', { id })).summaries[0].id, summary.id);
+  assert.equal(fx.noteAICalls[0].opts.image.base64, png.toString('base64'));
+  assert.equal(fx.noteAICalls[0].payload.source.url, 'https://example.test/source');
+
+  assert.equal((await fx.invoke('notes:aiSummary', { id, selection: '第一段' })).text, summary.body);
+  assert.equal((await fx.invoke('notes:aiRewrite', { id, selection: '第二段', instruction: '更明确' })).text, summary.body);
+  assert.deepEqual(fx.noteAICalls[1].payload, { selection: '第一段' });
+  assert.deepEqual(fx.noteAICalls[2].payload, { selection: '第二段', instruction: '更明确' });
+  assert.equal(fx.noteAICalls[1].opts.image, null);
+  assert.equal(fx.noteAICalls[2].opts.image, null);
+  assert.equal(fx.dialogs.length, 0);
+});
+
+test('note AI refuses disabled cloud requests and reports unsupported saved screenshot models before dispatch', async t => {
+  const offline = fixture(t, { networkDisabled: true });
+  const note = await offline.invoke('notes:create');
+  await offline.invoke('notes:update', { id: note.id, title: '示例', body: '完整内容' });
+  await assert.rejects(offline.invoke('notes:aiSummary', { id: note.id }), /测试模式/u);
+  assert.equal(offline.noteAICalls.length, 0);
+  const configured = fixture(t, { settings: { modelMode: 'manual', model: 'deepseek-v4-pro' } });
+  const id = 'unsupported-image';
+  configured.store.createDraft({ id, notes: '笔记文字' });
+  configured.store.addScreenshot(id, Buffer.alloc(24));
+  configured.store.complete(id);
+  await assert.rejects(configured.invoke('notes:aiSummary', { id: `record:${id}` }), /当前模型不支持截图理解/u);
+  assert.equal(configured.noteAICalls.length, 0);
+});
+
+test('note selection context is opt-in, is disclosed before approval and is withdrawn immediately', async t => {
+  const inFlight = Promise.withResolvers();
+  let delay = false;
+  const fx = fixture(t, { noteAI: () => delay ? inFlight.promise : { value: { text: '片段结果' } } });
+  const { id } = await fx.invoke('notes:create');
+  const before = '在情感化设计', selection = '中可靠客观的获得用户的情感信息很重要', after = '。';
+  await fx.invoke('notes:update', { id, title: '合成笔记', body: before + selection + after });
+  const params = { id, selection, start: before.length, end: before.length + selection.length, instruction: '写得简洁' };
+  await fx.invoke('notes:aiRewrite', params);
+  assert.deepEqual(fx.noteAICalls[0].payload, { selection, instruction: params.instruction });
+  assert.equal(fx.settings.public().noteSelectionContextEnabled, false);
+
+  const approved = await fx.invoke('settings:save', { noteSelectionContextEnabled: true });
+  assert.equal(approved.noteSelectionContextConsentVersion, 1);
+  assert.match(fx.dialogs[0].detail, /前文和后文各最多 900 个字符/u);
+  await fx.invoke('notes:aiRewrite', params);
+  assert.deepEqual(fx.noteAICalls[1].payload, { selection, instruction: params.instruction, before, after });
+  assert.equal(fx.noteAICalls[1].opts.image, null);
+
+  delay = true;
+  const pending = fx.invoke('notes:aiRewrite', params);
+  const cancelled = assert.rejects(pending, /已取消/u);
+  const revoked = await fx.invoke('settings:save', { noteSelectionContextEnabled: false });
+  assert.equal(revoked.noteSelectionContextConsentVersion, 0);
+  assert.equal(fx.noteAICalls[2].opts.signal.aborted, true);
+  inFlight.resolve({ value: { text: '旧稿' } });
+  await cancelled;
+  await fx.invoke('notes:aiRewrite', params);
+  assert.deepEqual(fx.noteAICalls[3].payload, { selection, instruction: params.instruction });
+});
+
+test('notebook IPC edits and deletes legacy records through their canonical saved files', async t => {
+  const cleaned = [], invalidated = [];
+  const fx = fixture(t, { cleanupRecordJobs: id => { cleaned.push(id); return { ok: true }; }, semantic: { invalidate(id) { invalidated.push(id); } } });
+  const record = fx.record('legacy-inspiration');
+  const noteId = `record:${record.id}`;
+  const audio = record.segments[0].path;
+  assert.equal((await fx.invoke('notes:list')).notes[0].id, noteId);
+  const note = await fx.invoke('notes:get', { id: noteId });
+  assert.equal(note.body, '保存灵感发生时的理由');
+  const updated = await fx.invoke('notes:update', { id: noteId, title: '可编辑的笔记', body: '新的正文' });
+  assert.equal(updated.body, '新的正文');
+  assert.equal((await fx.invoke('records:get', { id: record.id })).transcript, '新的正文');
+  assert.equal(invalidated[0], record.id);
+  assert.equal(fs.existsSync(audio), true);
+  const deleted = await fx.invoke('notes:delete', { id: noteId });
+  assert.equal(deleted.cleanupPending, false);
+  assert.equal(fx.store.getRecord(record.id), null);
+  assert.equal(fs.existsSync(audio), false);
+  assert.deepEqual(cleaned, [record.id]);
+  assert.equal(fx.calls.length, 0);
+});
+
+test('removing saved note audio requires body text and keeps the capture image and source', async t => {
+  const cleaned = [];
+  const fx = fixture(t, { cleanupRecordJobs: id => { cleaned.push(id); return { ok: true }; } });
+  const id = 'saved-note-audio', noteId = `record:${id}`;
+  fx.store.createDraft({ id, source: { url: 'https://example.test/' } });
+  fx.store.addSegment(id, { bytes: Buffer.alloc(50), durationMs: 1 });
+  fx.store.addScreenshot(id, Buffer.alloc(24), { method: 'region' });
+  const record = fx.store.complete(id);
+  const [audio] = record.segments, [screenshot] = record.screenshots;
+  await assert.rejects(fx.invoke('notes:removeAudio', { id: noteId }), /先填写并保存/u);
+  assert.equal(fs.existsSync(audio.path), true);
+  await fx.invoke('notes:update', { id: noteId, title: '', body: '保留的正文' });
+  const note = await fx.invoke('notes:removeAudio', { id: noteId });
+  assert.equal(note.body, '保留的正文');
+  assert.equal(note.background.audioSegments.length, 0);
+  assert.equal(note.background.screenshots[0].id, screenshot.id);
+  assert.equal(note.background.url, 'https://example.test/');
+  assert.equal(fs.existsSync(audio.path), false);
+  assert.equal(fs.existsSync(screenshot.path), true);
+  assert.deepEqual(cleaned, [id]);
+  assert.equal(fx.calls.length, 0);
+});
+
+test('key capture previews actual input, waits for release and only persists the shortcut', async t => {
+  const registered = new Map();
+  const fx = fixture(t, { globalShortcut: {
+    register(shortcut, callback) {
+      if (shortcut === 'Ctrl+Alt+F8') return false;
+      registered.set(shortcut, callback); return true;
+    },
+    unregister(shortcut) { registered.delete(shortcut); },
+  } });
+  const arm = id => fx.invoke('settings:shortcutCapture', { active: true, captureId: id }, fx.mainWindow);
+  const key = (type, key, code = key, mods = {}) => fx.captureShortcutInput({ type, key, code, ...mods });
+  const last = () => fx.events.findLast(event => event.type === 'regionShortcutCapture');
+  fx.startShortcut();
+  await assert.rejects(fx.invoke('settings:shortcutCapture', { active: true, captureId: 1 }), /主窗口/u);
+  assert.equal(await arm(1), true);
+  registered.get(DEFAULT_REGION_SHORTCUT)();
+  registered.get(DEFAULT_REGION_SHORTCUT)();
+  assert.equal(last().candidate, DEFAULT_REGION_SHORTCUT);
+  assert.equal(last().done, false);
+  key('keyUp', 'F9');
+  assert.equal(last().shortcut, DEFAULT_REGION_SHORTCUT);
+  assert.equal(last().done, true);
+  assert.equal(fs.existsSync(fx.settings.path), false);
+
+  await arm(2);
+  key('keyDown', 'Control', 'ControlLeft', { control: true });
+  assert.equal(last().id, 1);
+  key('keyDown', 'F7');
+  assert.match(last().error, /修饰键/u);
+  key('keyDown', 'F8', 'F8', { control: true, alt: true });
+  assert.equal(last().candidate, 'Ctrl+Alt+F8');
+  key('keyUp', 'F8');
+  assert.match(last().error, /占用/u);
+  assert.equal(registered.has(DEFAULT_REGION_SHORTCUT), true);
+  await fx.invoke('settings:shortcutCapture', { active: false, captureId: 2 }, fx.mainWindow);
+  assert.equal(last().done, true);
+
+  await arm(3);
+  key('keyDown', '!', 'Digit1', { control: true, shift: true });
+  key('keyDown', '!', 'Digit1', { control: true, shift: true, isAutoRepeat: true });
+  assert.equal(last().candidate, 'Ctrl+Shift+1');
+  key('keyUp', 'Control', 'ControlLeft');
+  assert.equal(fx.settings.public().regionScreenshotShortcut, DEFAULT_REGION_SHORTCUT);
+  key('keyUp', '!', 'Digit1');
+  assert.equal(last().shortcut, 'Ctrl+Shift+1');
+  assert.equal(JSON.parse(fs.readFileSync(fx.settings.path)).regionScreenshotShortcut, 'Ctrl+Shift+1');
+  assert.equal(fx.settings.public().thresholdMs, 550);
+  assert.deepEqual([...registered.keys()], ['Ctrl+Shift+1']);
+
+  await arm(4);
+  key('keyDown', 'F7', 'F7', { control: true });
+  fx.cancelShortcutCapture();
+  key('keyUp', 'F7');
+  assert.equal(fx.settings.public().regionScreenshotShortcut, 'Ctrl+Shift+1');
+});
+
+test('settings IPC replaces screenshot shortcuts atomically, with rollback on conflicts and write failures', async t => {
+  const registered = new Map();
+  const occupied = new Set(['Ctrl+Alt+F8']);
+  const registry = {
+    register(shortcut, listener) {
+      if (occupied.has(shortcut)) return false;
+      registered.set(shortcut, listener);
+      return true;
+    },
+    unregister(shortcut) { registered.delete(shortcut); },
+  };
+  const fx = fixture(t, { globalShortcut: registry });
+  assert.equal(fx.startShortcut().available, true);
+  const initialListener = registered.get(DEFAULT_REGION_SHORTCUT);
+  await assert.rejects(fx.invoke('settings:save', { regionScreenshotShortcut: 'Ctrl+Alt+F8', thresholdMs: 2100 }), { code: 'REGION_SHORTCUT' });
+  assert.equal(registered.get(DEFAULT_REGION_SHORTCUT), initialListener);
+  assert.equal(fx.settings.public().thresholdMs, 550);
+  assert.equal(fs.existsSync(fx.settings.path), false);
+  assert.equal(fx.bootstrap().capabilities.regionScreenshot.shortcut, DEFAULT_REGION_SHORTCUT);
+
+  const persist = t.mock.method(fx.settings, 'persist', () => { throw new Error('disk write failed'); });
+  await assert.rejects(fx.invoke('settings:save', { regionScreenshotShortcut: 'Alt+Shift+F7' }), /disk write failed/u);
+  assert.deepEqual([...registered.keys()], [DEFAULT_REGION_SHORTCUT]);
+  assert.equal(registered.get(DEFAULT_REGION_SHORTCUT), initialListener);
+  persist.mock.restore();
+  await fx.invoke('settings:save', { regionScreenshotShortcut: 'shift + alt + f7' });
+  assert.deepEqual([...registered.keys()], ['Alt+Shift+F7']);
+  assert.equal(fx.bootstrap().capabilities.regionScreenshot.shortcut, 'Alt+Shift+F7');
+  assert.equal(JSON.parse(fs.readFileSync(fx.settings.path)).regionScreenshotShortcut, 'Alt+Shift+F7');
+
+  occupied.add(DEFAULT_REGION_SHORTCUT);
+  await assert.rejects(fx.invoke('settings:reset'), { code: 'REGION_SHORTCUT' });
+  assert.deepEqual([...registered.keys()], ['Alt+Shift+F7']);
+  assert.equal(fx.settings.public().regionScreenshotShortcut, 'Alt+Shift+F7');
+  occupied.delete(DEFAULT_REGION_SHORTCUT);
+  await fx.invoke('settings:reset');
+  assert.deepEqual([...registered.keys()], [DEFAULT_REGION_SHORTCUT]);
+  assert.equal(fx.settings.public().regionScreenshotShortcut, DEFAULT_REGION_SHORTCUT);
+  fx.quit();
+  assert.equal(registered.size, 0);
+});
+
+test('a screenshot shortcut occupied at startup is visible and other settings still save', async t => {
+  let attempts = 0;
+  const fx = fixture(t, { globalShortcut: { register() { attempts++; return false; } } });
+  assert.match(fx.startShortcut().error, /占用/u);
+  await fx.invoke('settings:save', { thresholdMs: 710, regionScreenshotShortcut: DEFAULT_REGION_SHORTCUT });
+  assert.equal(attempts, 1);
+  assert.equal(fx.settings.public().thresholdMs, 710);
+  assert.equal(fx.bootstrap().capabilities.regionScreenshot.available, false);
+});
 
 test('isolated development network lock rejects approved IPC calls before even the mock client', async t => {
   const fx = fixture(t, { networkDisabled: true }); fx.record();
@@ -77,6 +314,24 @@ test('isolated development network lock rejects approved IPC calls before even t
   assert.equal(fx.calls.length, 0); assert.equal(fx.dialogs.length, 0);
   assert.throws(() => globalThis.fetch('https://example.invalid/'), /Network is forbidden/);
   assert.throws(() => require('node:https').get('https://example.invalid/'), /Network is forbidden/);
+});
+
+test('background projections keep legacy screenshots separate and only open the saved web address', async t => {
+  const fx = fixture(t);
+  fx.store.createDraft({ id: 'context', source: { processName: 'Browser', title: 'Product research', url: 'https://example.test/research', hwnd: '5', pid: 1 } });
+  fx.store.addScreenshot('context', Buffer.from('background'));
+  fx.store.addScreenshot('context', Buffer.from('crop'), { method: 'region' });
+  fx.store.complete('context');
+  const record = await fx.invoke('records:get', { id: 'context' });
+  assert.equal(record.context.canFocus, true);
+  assert.equal(record.context.url, 'https://example.test/research');
+  assert.deepEqual(Array.from(record.screenshots, item => item.role), ['background', 'region']);
+  assert.equal(record.screenshot.role, 'region');
+  assert.ok(record.screenshots.every(item => item.url.startsWith('inmoment-media://') && !Object.hasOwn(item, 'path')));
+  await fx.invoke('records:openSourceUrl', { id: 'context', url: 'https://foreign.test/' });
+  fx.store.createDraft({ id: 'unsafe', source: { url: 'file:///C:/test.exe' } });
+  await assert.rejects(fx.invoke('records:openSourceUrl', { id: 'unsafe' }), /没有可打开的网址/u);
+  assert.deepEqual(fx.osActions, ['https://example.test/research']);
 });
 test('IPC rejects new AI scopes before any dialog or injected model when settings are disabled', async t => {
   const fx = fixture(t, { settings: { cloudEnabled: false } }); fx.record();
@@ -182,6 +437,32 @@ test('bulk group IPC merges and deletes only selected groups without models or o
   await fx.invoke('topics:deleteMany', { topicIds: [b.id, other.id] }); assert.equal(fx.store.listTopics().length, 0); assert.deepEqual(fx.store.getRecord(record.id).topics, []); assert.deepEqual(fs.readFileSync(record.segments[0].path), audio);
   assert.equal(fx.calls.length, 0); assert.equal(fx.dialogs.length, 0); assert.equal(fx.events.filter(event => event.type === 'recordsChanged').length, 2);
 });
+test('group subtree copy and content deletion use independent notes and retain shared original memberships', async t => {
+  const fx = fixture(t);
+  const root = await fx.invoke('topics:create', { name: '验收组' });
+  const child = await fx.invoke('topics:create', { name: '子组', parentId: root.id });
+  const outside = await fx.invoke('topics:create', { name: '其他组' });
+  const own = await fx.invoke('notes:create', { topicId: child.id, title: '独有', body: '独有正文' });
+  const shared = fx.record('shared-group-note');
+  fx.store.setRecordTopics(shared.id, [child.id, outside.id]);
+
+  const copy = await fx.invoke('topics:copyTree', { topicIds: [root.id, child.id], parentId: outside.id });
+  assert.equal(copy.count, 2);
+  const [copyRoot] = copy.groupIds;
+  const copyChild = fx.store.listTopics().find(group => group.parentId === copyRoot);
+  const copyNotes = (await fx.invoke('notes:list', { topicId: copyChild.id })).notes;
+  assert.equal(copyNotes.length, 2);
+  assert.notEqual(copyNotes.find(note => note.title === '独有').id, own.id);
+  assert.ok(copyNotes.every(note => note.id !== `record:${shared.id}`));
+
+  const removed = await fx.invoke('topics:deleteWithNotes', { topicIds: [root.id] });
+  assert.deepEqual(Array.from(removed.deletedNotes), [own.id]);
+  await assert.rejects(fx.invoke('notes:get', { id: own.id }), /笔记已不存在/u);
+  assert.deepEqual(fx.store.getRecord(shared.id).topics.map(topic => topic.id), [outside.id]);
+  assert.equal((await fx.invoke('notes:list', { topicId: copyChild.id })).notes.length, 2);
+  assert.equal(fx.calls.length, 0);
+});
+
 test('final IPC search mapping drops a stale record even if an injected service returns it', async t => {
   let fx;
   const libraryAI = { async search() { const original = fx.store.getRecord('one'); fx.store.updateRecord('one', { notes: 'new version' }); return { results: [{ id: 'one', version: original.version, reason: '旧依据', quote: '灵感' }], coverage: { scopeCount: 1, examinedCount: 1 } }; } };
@@ -215,10 +496,10 @@ test('direct consent automatically attaches only the saved screenshot when its s
   }
 });
 test('screenshot permission or model failures remain visible rather than silently changing the upload scope', async t => {
-  for (const fields of [{ screenshotAnalysisConsentVersion: 0 }, { model: 'deepseek-pro' }]) {
+  for (const fields of [{ screenshotAnalysisConsentVersion: 0 }, { modelMode: 'manual', model: 'deepseek-pro' }]) {
     const fx = fixture(t, { settings: { directAIEnabled: true, directAIConsentVersion: 1, ...fields } });
     fx.store.createDraft({ id: 'one', notes: '截图相关的灵感' }); fx.store.addScreenshot('one', Buffer.alloc(24)); fx.store.complete('one');
-    await assert.rejects(fx.invoke('records:organize', { id: 'one' }), /确认|不支持截图/); assert.equal(fx.calls.length, 0);
+    await assert.rejects(fx.invoke('records:organize', { id: 'one' }), /确认|不支持截图|未启用截图理解/); assert.equal(fx.calls.length, 0);
   }
 });
 test('saving new direct permission requires explicit settings confirmation and cannot forge its version', async t => {
@@ -340,4 +621,13 @@ test('semantic cancellation IPC waits for local cleanup before acknowledging a s
   const request = fx.invoke('semantic:cancel').then(result => { settled = true; return result; });
   await Promise.resolve(); await Promise.resolve(); assert.equal(settled, false);
   finish(); assert.equal((await request).cancelled, true); assert.equal(fx.calls.length, 0);
+});
+
+test('waveform IPC reads only owned synthetic WAV audio on demand and cleanup revokes future access',async t=>{
+  const fx=fixture(t),{wavHeader}=require('../src/main/wav-writer.cjs'),pcm=Buffer.alloc(1600*2);for(let i=0;i<1600;i++)pcm.writeInt16LE(i<800?0:16384,i*2);const bytes=Buffer.concat([wavHeader(pcm.length,16000),pcm]);
+  for(const id of ['wave-saved','wave-draft']){fx.store.createDraft({id});fx.store.addSegment(id,{id:id+'-audio',bytes,durationMs:999});if(id==='wave-saved')fx.store.complete(id);}
+  const saved=await fx.invoke('records:waveform',{id:'wave-saved',segmentId:'wave-saved-audio',path:'C:/untrusted/not-used.wav'});assert.equal(saved.durationMs,100);assert.equal(saved.peaks.length,256);assert.ok(saved.peaks.slice(0,128).every(n=>n===0));assert.ok(saved.peaks.slice(128).every(n=>n===.5));assert.equal(saved.path,undefined);
+  await assert.rejects(()=>fx.invoke('records:waveform',{id:'wave-saved',segmentId:'wave-draft-audio'}),/已不可用/u);assert.equal((await fx.invoke('records:waveform',{id:'wave-draft',segmentId:'wave-draft-audio'})).durationMs,100);
+  await fx.invoke('draft:discard',{id:'wave-draft'});await assert.rejects(()=>fx.invoke('records:waveform',{id:'wave-draft',segmentId:'wave-draft-audio'}),/已不可用/u);
+  await fx.invoke('records:delete',{id:'wave-saved'});await assert.rejects(()=>fx.invoke('records:waveform',{id:'wave-saved',segmentId:'wave-saved-audio'}),/已不可用/u);assert.equal(fx.calls.length,0);
 });

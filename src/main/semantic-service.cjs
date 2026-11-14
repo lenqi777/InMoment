@@ -11,10 +11,10 @@ const MODEL_ID = 'multilingual-e5-small-q8-v1';
 function check(signal) { if (signal?.aborted) { const error = new Error('已停止本地索引。'); error.name = 'AbortError'; throw error; } }
 function missingModel() { return Object.assign(new Error('本地语义模型尚未安装，请在设置中安装组件。'), { code: 'MODEL_NOT_INSTALLED' }); }
 function content(record) {
-  return [record.title, !record.organizationStale && record.organization?.summary, record.task, record.notes,
+  return [record.title, !record.organizationStale && record.organization?.summary, record.task, !record.hasTranscriptOverride && record.notes,
     [record.source?.appName || record.source?.processName, record.source?.windowTitle || record.source?.title, record.source?.url].filter(Boolean).join(' ').slice(0, 800),
     !record.organizationStale && record.organization?.context?.description,
-    ...(record.segments?.length ? record.segments.map(segment => segment.transcript) : [record.transcript])].filter(Boolean).join('\n').trim();
+    ...(record.hasTranscriptOverride ? [record.transcript] : record.segments?.length ? record.segments.map(segment => segment.transcript) : [record.transcript])].filter(Boolean).join('\n').trim();
 }
 function signature(text) { return createHash('sha256').update(MODEL_ID + '\n' + text).digest('hex'); }
 function passages(text) {

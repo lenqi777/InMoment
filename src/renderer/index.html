@@ -3,78 +3,207 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: inmoment-media: file:; media-src 'self' blob: inmoment-media: file:; connect-src 'self'; object-src 'none'; base-uri 'none'">
-  <title>InMoment · 灵感现场</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data: inmoment-media: file:; media-src 'self' blob: inmoment-media: file:; connect-src 'self'; object-src 'none'; base-uri 'none'">
+  <title>InMoment</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="notes.css">
+  <link rel="stylesheet" href="note-format.css">
+  <link rel="stylesheet" href="note-media.css">
+  <link rel="stylesheet" href="note-image-viewer.css">
+  <link rel="stylesheet" href="note-image-editor.css">
+  <link rel="stylesheet" href="../vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="../shared/chat-view.css">
+  <link rel="stylesheet" href="../shared/chat-navigation.css">
 </head>
-<body>
-  <svg class="icon-definitions" aria-hidden="true"><defs><symbol id="icon-record" viewBox="0 0 24 24"><rect x="8" y="2.5" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-settings" viewBox="0 0 24 24"><path d="m9.7 3-.6 2.3-2 .9L5 5.5l-2 3.4 1.7 1.7-.2 2.2L3 14.5 5 18l2.3-.7 1.8 1 .6 2.7h4.5l.7-2.5 1.9-1.1 2.2.7 2-3.5-1.7-1.6v-2.2L21 9l-2-3.5-2.3.7-1.9-1-.6-2.2Z"/><circle cx="12" cy="12" r="3.2"/></symbol><symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/></symbol><symbol id="icon-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol><symbol id="icon-add" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol><symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="icon-link" viewBox="0 0 24 24"><path d="m10 14 4-4M8.5 15.5l-1 1a4 4 0 0 1-5.7-5.7l4-4a4 4 0 0 1 5.7 0m1 1 1-1a4 4 0 0 1 5.7 5.7l-4 4a4 4 0 0 1-5.7 0"/></symbol></defs></svg>
+<body class="notes-open notebook-layout">
   <div class="app-shell">
     <aside class="icon-rail" aria-label="应用操作">
-      <span class="rail-brand" title="InMoment"><img src="../assets/icon.svg" alt="InMoment"></span>
-      <button id="start-recording" class="rail-button record-button" type="button" aria-label="手动录音" title="手动录音"><svg class="app-icon" aria-hidden="true"><use href="#icon-record"/></svg></button>
-      <button class="rail-button nav-item rail-settings" data-view="settings" type="button" aria-label="偏好设置" title="偏好设置"><svg class="app-icon" aria-hidden="true"><use href="#icon-settings"/></svg></button>
+      <span class="rail-brand"><img src="../assets/icon.svg" alt=""></span>
+      <button id="open-notes" class="rail-button ui-hover-action nav-item active" data-view="notes" type="button" aria-label="笔记" title="笔记" aria-current="page" data-ui-icon="edit"></button>
+      <button id="open-chat" class="rail-button ui-hover-action nav-item" data-view="chat" type="button" aria-label="聊天" title="聊天" data-ui-icon="chat"></button>
+      <button id="open-drafts" class="rail-button ui-hover-action nav-item rail-drafts hidden" data-view="drafts" type="button" aria-label="恢复录音" title="恢复录音" data-ui-icon="clock"><span id="draft-count" class="rail-draft-count hidden" aria-hidden="true"></span></button>
+      <button id="open-guide" class="rail-button ui-hover-action rail-help" type="button" aria-label="录音说明" title="录音说明" data-ui-icon="help" aria-haspopup="dialog" aria-controls="guide-dialog" aria-expanded="false"></button>
+      <button class="rail-button ui-hover-action nav-item rail-settings" data-view="settings" type="button" aria-label="偏好设置" title="偏好设置" data-ui-icon="settings"></button>
     </aside>
-    <aside class="sidebar library-sidebar" aria-label="灵感分组">
-      <div class="library-sidebar-heading"><a class="brand" href="#" aria-label="返回当前分组">InMoment</a><button id="close-group-sidebar" class="icon-button" type="button" aria-label="收起分组栏">×</button></div>
-      <div class="library-sidebar-tools"><span>我的分组</span><div><button id="create-primary-group" class="icon-button" type="button" aria-label="创建分组" title="创建分组"><svg class="app-icon" aria-hidden="true"><use href="#icon-add"/></svg></button><button id="open-primary-group-manager" class="icon-button" type="button" aria-label="管理分组" title="管理分组"><svg class="app-icon" aria-hidden="true"><use href="#icon-more"/></svg></button></div></div>
-      <form id="primary-group-create-form" class="primary-group-create-form hidden"><input id="primary-group-name" type="text" maxlength="60" placeholder="分组名称" aria-label="新分组名称"><p id="primary-group-status" class="field-help" role="status"></p><div><button id="save-primary-group" class="button primary compact" type="submit">创建</button><button id="cancel-primary-group" class="button quiet compact" type="button">取消</button></div></form>
-      <nav id="primary-group-navigation" class="primary-group-navigation" aria-label="我的分组"></nav>
-      <div class="sidebar-bottom"><button class="nav-item" data-view="drafts"><svg class="app-icon" aria-hidden="true"><use href="#icon-clock"/></svg><span>未保存记录</span><span id="draft-count" class="nav-count">0</span></button><button class="nav-item secondary-navigation" data-view="duplicates"><svg class="app-icon" aria-hidden="true"><use href="#icon-link"/></svg><span>灵感云</span></button><button id="open-guide" class="text-button">录音说明</button><button class="nav-item hidden" data-view="inbox">返回灵感<span id="inbox-count">0</span></button><button id="guide-button" class="hidden" type="button">录音说明</button></div>
+    <header class="topbar app-titlebar" aria-label="InMoment 窗口标题栏"><span class="app-title-brand">InMoment</span><div class="breadcrumb"><span id="breadcrumb-current">笔记</span></div><button id="toggle-group-sidebar" class="icon-button ui-hover-action" type="button" aria-label="展开或收起分组栏" title="分组栏" data-ui-icon="panel" aria-controls="primary-group-sidebar" aria-expanded="false"></button></header>
+    <div class="app-content">
+    <aside id="primary-group-sidebar" class="sidebar library-sidebar" aria-label="分组">
+      <div class="library-sidebar-heading">
+        <span class="brand">InMoment</span><span class="notebook-group-heading">分组</span>
+        <span class="notebook-group-fold-slot"><button id="fold-notebook-groups" class="icon-button" type="button" aria-label="收起分组栏" title="收起分组栏" data-ui-icon="group-fold" aria-controls="notebook-group-content" aria-expanded="true"></button></span>
+        <button id="close-group-sidebar" class="icon-button" type="button" aria-label="收起分组栏" data-ui-icon="close"></button>
+      </div>
+      <div id="notebook-group-content" class="library-sidebar-content">
+        <label class="search-box notebook-group-search"><span data-ui-icon="search" aria-hidden="true"></span><input id="group-search" type="search" autocomplete="off" placeholder="搜索分组…" aria-label="搜索分组"></label>
+        <div class="library-sidebar-tools">
+          <span class="legacy-group-label">我的分组</span>
+          <div id="notebook-group-controls" class="notebook-group-selection hidden">
+            <label class="record-selection-checkbox-target"><input id="group-select-all" class="record-selection-master" type="checkbox" aria-label="全选分组"></label>
+            <button id="group-select-mode" class="button quiet compact" type="button" aria-pressed="false">多选</button>
+            <span id="group-selection-count" class="hidden" role="status"></span>
+            <button id="group-selection-actions" class="icon-button hidden" type="button" aria-label="批量分组操作" title="批量分组操作" data-ui-icon="more" aria-haspopup="menu"></button>
+          </div>
+          <div><button id="create-primary-group" class="icon-button" type="button" aria-label="创建分组" title="创建分组" data-ui-icon="add"></button><button id="open-primary-group-manager" class="icon-button" type="button" aria-label="管理分组" title="管理分组" data-ui-icon="more" aria-haspopup="dialog" aria-controls="group-management-dialog"></button></div>
+        </div>
+        <form id="primary-group-create-form" class="primary-group-create-form hidden"><input id="primary-group-name" type="text" maxlength="60" placeholder="分组名称" aria-label="新分组名称"><p id="primary-group-status" class="field-help" role="status"></p><div><button id="save-primary-group" class="button primary compact" type="submit">创建</button><button id="cancel-primary-group" class="button quiet compact" type="button">取消</button></div></form>
+        <nav id="primary-group-navigation" class="primary-group-navigation" aria-label="分组导航"></nav>
+        <span id="inbox-count" class="hidden" aria-hidden="true">0</span>
+      </div>
     </aside>
-    <aside id="record-column" class="record-column" aria-label="当前分组的灵感列表"></aside>
-    <button id="group-sidebar-backdrop" class="group-sidebar-backdrop" type="button" aria-label="收起分组栏"></button>
+    <aside id="record-column" class="record-column" aria-label="当前分组的灵感列表"><div id="record-column-header" class="record-column-header"></div></aside>
+    <div id="group-sidebar-backdrop" class="group-sidebar-backdrop" aria-hidden="true"></div>
     <main class="workspace">
-      <header class="topbar app-titlebar" aria-label="InMoment 窗口标题栏"><button id="toggle-group-sidebar" class="icon-button" type="button" aria-label="展开或收起分组栏" title="分组栏"><svg class="app-icon" aria-hidden="true"><use href="#icon-panel"/></svg></button><div class="breadcrumb"><span id="breadcrumb-current">未分类</span></div></header>
-      <section id="inbox-view" class="page-view library-page">
-        <div class="collection-toolbar"><div class="collection-label"><button id="back-to-group-home" class="icon-button" type="button" aria-label="返回分组主页" title="返回分组主页">←</button><h1 id="collection-heading">未分类</h1><span id="record-count">0 条记录</span></div><label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" autocomplete="off" placeholder="搜索灵感…" aria-label="搜索灵感"><kbd>Ctrl K</kbd></label></div>
-        <div class="library-filters">
-          <label><select id="date-range" aria-label="时间范围"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="365">最近一年</option><option value="custom">自定日期</option></select></label>
+      <section id="inbox-view" class="page-view library-page hidden">
+        <div id="collection-toolbar" class="collection-toolbar"><div class="collection-label"><button id="back-to-group-home" class="icon-button" type="button" aria-label="返回分组主页" title="返回分组主页" data-ui-icon="back"></button><h1 id="collection-heading">未分类</h1><span id="record-count">0 条记录</span></div><label class="search-box"><span data-ui-icon="search" aria-hidden="true"></span><input id="search-input" type="search" autocomplete="off" placeholder="搜索灵感…" aria-label="搜索灵感"><kbd>Ctrl K</kbd></label></div>
+        <div id="library-filters" class="library-filters">
+          <button id="library-filter-trigger" class="button quiet compact library-filter-trigger" type="button" data-ui-icon="filter" aria-haspopup="dialog" aria-expanded="false" aria-label="筛选灵感">筛选</button>
+          <div class="library-filter-sources hidden" aria-hidden="true">
+          <div class="date-range-control"><button id="date-range-trigger" class="button quiet compact select-trigger" type="button" data-ui-icon="calendar" aria-haspopup="menu" aria-expanded="false" aria-label="时间范围：全部时间">全部时间</button><select id="date-range" class="hidden" tabindex="-1" aria-hidden="true" aria-label="时间范围"><option value="all">全部时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option><option value="365">最近一年</option><option value="custom">自定日期</option></select></div>
           <span id="custom-dates" class="hidden"><input id="date-from" type="date" aria-label="开始日期"> 至 <input id="date-to" type="date" aria-label="结束日期"></span>
           <details id="topic-filter" class="hidden"><summary id="topic-filter-label">全部分组</summary><div class="topic-filter-popover"><input id="topic-filter-search" type="search" autocomplete="off" placeholder="查找分组" aria-label="查找筛选分组"><label class="topic-choice"><input id="filter-unclassified" type="checkbox"><span>未分类</span></label><div id="topic-filter-options" class="topic-filter-options"></div><button id="clear-topic-filter" class="button quiet compact" type="button">清除分组筛选</button></div></details>
-          <button id="clear-filters" class="hidden" type="button">清除筛选</button><button id="ai-search" class="button quiet compact">AI 查找</button><button id="cancel-search" class="button secondary compact hidden">取消查找</button><button id="batch-organize" class="button quiet compact" type="button">一键整理</button><button id="cancel-batch" class="button quiet compact hidden" type="button">取消整理</button><span id="batch-status" class="batch-status" role="status"></span><button id="discover-similar" class="hidden" type="button">相似候选</button>
+          <button id="clear-filters" class="hidden" type="button">清除筛选</button><button id="ai-search" data-ui-icon="sparkle" class="button quiet compact hidden">AI 查找</button>
+          </div>
+          <button id="cancel-search" class="button quiet compact hidden">取消查找</button><button id="batch-organize" data-ui-icon="sparkle" class="button quiet compact" type="button">一键整理</button><button id="cancel-batch" class="button quiet compact hidden" type="button">取消整理</button><span id="batch-status" class="batch-status" role="status"></span><button id="discover-similar" class="hidden" type="button">相似候选</button>
+          <div id="library-display-controls" class="library-display-controls" role="group" aria-label="记录显示方式"><button id="library-display-grid" class="icon-button" type="button" data-ui-icon="grid" aria-label="网格视图" title="网格视图" aria-pressed="true"></button><button id="library-display-list" class="icon-button" type="button" data-ui-icon="list" aria-label="列表视图" title="列表视图" aria-pressed="false"></button></div>
         </div>
-        <div class="library-feedback"><div id="library-status" class="library-status" role="status" aria-live="polite"></div><button id="retry-library" class="button secondary compact hidden">重试加载</button></div>
+        <div id="library-feedback" class="library-feedback"><div id="library-status" class="library-status" role="status" aria-live="polite"></div><button id="retry-library" class="button secondary compact hidden">重试加载</button></div>
         <p id="record-feedback" class="field-help hidden" role="status"></p>
-        <section id="inbox-similar" class="similar-panel hidden" aria-label="当前范围的相似想法"><div class="similar-panel-heading"><strong>相似想法</strong><div class="heading-actions"><button id="analyze-inbox-similar" class="button primary compact">分析当前范围</button><button id="cancel-inbox-similar" class="button secondary compact hidden">取消分析</button><button id="close-inbox-similar" class="icon-button" aria-label="收起相似想法">×</button></div></div><p id="inbox-similar-status" class="field-help" role="status"></p><div id="inbox-similar-list" class="duplicate-list"></div></section>
-        <button id="back-to-list" class="button secondary compact narrow-back" type="button">← 返回灵感列表</button>
+        <section id="inbox-similar" class="similar-panel hidden" aria-label="当前范围的相似想法"><div class="similar-panel-heading"><strong>相似想法</strong><div class="heading-actions"><button id="analyze-inbox-similar" data-ui-icon="sparkle" class="button primary compact">分析当前范围</button><button id="cancel-inbox-similar" class="button secondary compact hidden">取消分析</button><button id="close-inbox-similar" class="icon-button" aria-label="收起相似想法" data-ui-icon="close"></button></div></div><p id="inbox-similar-status" class="field-help" role="status"></p><div id="inbox-similar-list" class="duplicate-list"></div></section>
+        <button id="back-to-list" class="button secondary compact narrow-back" type="button" data-ui-icon="back">返回灵感列表</button>
         <div id="collection-body" class="collection-body"><div id="record-grid-host" class="record-grid-host"><section id="record-list" class="record-list" aria-label="灵感列表"></section></div><aside id="record-detail" class="record-detail" aria-label="灵感详情"></aside></div>
         <button id="load-more" class="button secondary compact load-more hidden">加载更多记录</button>
       </section>
       <section id="drafts-view" class="page-view library-page hidden">
-        <div class="page-heading"><h1>未保存记录</h1><p class="muted">查看后，选择继续、保存或删除。</p></div><div id="draft-error" class="persistent-error hidden" role="alert"></div>
-        <div class="draft-workspace"><div id="draft-list" class="draft-list"></div><aside id="draft-detail" class="record-detail"><div class="empty-state"><h2>选择一条未保存记录</h2><p>完成前，录音和截图只保留在本机。</p></div></aside></div>
+        <div class="page-heading"><h1>恢复录音</h1><p class="muted">选择继续录音、存为笔记或删除。</p></div><div id="draft-error" class="persistent-error hidden" role="alert"></div>
+        <div class="draft-workspace"><div id="draft-list" class="draft-list"></div><aside id="draft-detail" class="record-detail"><div class="empty-state"><h2>选择一条未保存录音</h2><p>完成前，录音和截图只保留在本机。</p></div></aside></div>
       </section>
       <section id="duplicates-view" class="page-view cloud-page hidden">
-        <div class="cloud-toolbar"><h1>灵感云</h1><label class="cloud-search"><input id="cloud-search" type="search" autocomplete="off" placeholder="定位一条灵感…" aria-label="在灵感云中查找"></label><div class="cloud-controls"><button id="cloud-zoom-out" class="button quiet compact" type="button" aria-label="缩小灵感云">−</button><button id="cloud-zoom-in" class="button quiet compact" type="button" aria-label="放大灵感云">＋</button><button id="cloud-reset" class="button quiet compact" type="button">适应窗口</button><button id="cloud-focus" class="button quiet compact" type="button">聚焦所选</button><button id="cloud-refresh" class="button quiet compact" type="button">刷新</button></div></div>
+        <div class="cloud-toolbar"><h1>灵感云</h1><label class="cloud-search"><input id="cloud-search" type="search" autocomplete="off" placeholder="定位一条灵感…" aria-label="在灵感云中查找"></label><div class="cloud-controls"><button id="cloud-zoom-out" class="button quiet compact" type="button" aria-label="缩小灵感云" data-ui-icon="minus"></button><button id="cloud-zoom-in" class="button quiet compact" type="button" aria-label="放大灵感云" data-ui-icon="plus"></button><button id="cloud-reset" class="button quiet compact" type="button" data-ui-icon="expand">适应窗口</button><button id="cloud-focus" class="button quiet compact" type="button" data-ui-icon="focus">聚焦所选</button><button id="cloud-refresh" class="button quiet compact" type="button" data-ui-icon="refresh">刷新</button></div></div>
         <p id="cloud-status" class="field-help cloud-status" role="status"></p>
         <div class="cloud-workspace"><div id="thought-cloud-root" class="thought-cloud-root" aria-label="灵感关系网络"></div><aside id="cloud-selection" class="cloud-selection hidden" aria-label="所选灵感"></aside></div>
         <div class="legacy-collection-view hidden" aria-hidden="true">
-        <div class="group-context"><div class="heading-actions"><button id="back-to-groups" class="button quiet compact">← 全部集合</button><h2 id="group-context-title">全部集合</h2></div><div class="heading-actions"><button id="rename-group" class="button secondary compact hidden">修改集合名称</button><button id="ungroup-current" class="button quiet compact hidden">解除集合</button></div></div>
+        <div class="group-context"><div class="heading-actions"><button id="back-to-groups" class="button quiet compact" data-ui-icon="back">全部集合</button><h2 id="group-context-title">全部集合</h2></div><div class="heading-actions"><button id="rename-group" class="button secondary compact hidden">修改集合名称</button><button id="ungroup-current" class="button quiet compact hidden">解除集合</button></div></div>
         <p id="group-feedback" class="field-help hidden" role="status"></p>
         <form id="group-rename-form" class="group-rename-form hidden"><input id="group-name-input" type="text" maxlength="60" aria-label="集合名称"><button id="save-group-name" class="button primary compact" type="submit">保存名称</button><button id="cancel-group-name" class="button secondary compact" type="button">取消</button></form>
-        <button id="back-to-group-list" class="button secondary compact narrow-back" type="button">← 返回集合列表</button>
+        <button id="back-to-group-list" class="button secondary compact narrow-back" type="button" data-ui-icon="back">返回集合列表</button>
         <div class="group-workspace collection-body"><div class="group-list-column"><div id="organization-browse-tabs" class="organization-browse-tabs" aria-label="浏览相似集合或我的分组"><button id="browse-groups" class="button secondary compact active" type="button" aria-pressed="true">相似集合</button><button id="browse-topics" class="button secondary compact" type="button" aria-pressed="false">我的分组</button></div><nav id="group-navigation" class="group-navigation" aria-label="相似集合"></nav><nav id="topic-navigation" class="topic-navigation hidden" aria-label="按分组浏览"></nav><section id="group-record-list" class="record-list hidden" aria-label="集合内灵感列表"></section></div><aside id="group-record-detail" class="record-detail" aria-label="集合内灵感详情"></aside></div>
-        <details class="legacy-review hidden"><summary>相似候选</summary><div class="detail-actions"><button id="analyze-duplicates" class="button primary">分析当前筛选范围</button><button id="cancel-duplicates" class="button secondary hidden">取消分析</button></div><p id="duplicates-status" class="field-help" role="status"></p><div id="duplicate-list" class="duplicate-list"></div><div id="group-list" class="duplicate-list"></div></details>
+        <details class="legacy-review hidden"><summary>相似候选</summary><div class="detail-actions"><button id="analyze-duplicates" data-ui-icon="sparkle" class="button primary">分析当前筛选范围</button><button id="cancel-duplicates" class="button secondary hidden">取消分析</button></div><p id="duplicates-status" class="field-help" role="status"></p><div id="duplicate-list" class="duplicate-list"></div><div id="group-list" class="duplicate-list"></div></details>
 
         </div>
       </section>
-      <section id="settings-view" class="page-view settings-page hidden">
-        <div class="page-heading"><h1>偏好设置</h1></div>
-        <form id="settings-form" class="settings-grid">
-          <section class="settings-card"><h2>捕捉方式</h2><label class="toggle-row"><span><strong>启用长按触发</strong><small>首次按住录音、松开暂停；之后点击继续。</small></span><input id="input-enabled" type="checkbox" checked><span class="toggle" aria-hidden="true"></span></label><label class="toggle-row"><span><strong>保存来源截图</strong><small>删除记录时，一并清理关联截图。</small></span><input id="capture-screenshots" type="checkbox" checked><span class="toggle" aria-hidden="true"></span></label><label class="field-label" for="excluded-apps">不响应长按的应用</label><textarea id="excluded-apps" rows="3" placeholder="每行一个进程名，例如 KeePass.exe"></textarea><p class="field-help">这些应用保留原按键行为，仍可使用手动录音。</p><details class="capability-details"><summary>录音与转写状态</summary><div id="capability-status" class="capability-status"></div></details></section>
-          <section class="settings-card"><h2>AI 功能与授权</h2><p class="field-help">使用你的 DeepSeek 密钥，按实际请求计费。开启本身不会分析资料。</p>
-            <label class="toggle-row"><span><strong>启用云端 AI</strong><small>只运行已授权的功能，可随时关闭。</small></span><input id="cloud-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
-            <label class="toggle-row"><span><strong>点击 AI 按钮时直接开始</strong><small>保存并确认授权后，AI 查找、整理等按点击执行。批量整理逐条总结后，将本次摘要统一归类，最多记录数加一次请求；可能产生费用。</small></span><input id="direct-ai-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
-            <label class="toggle-row"><span><strong>自动命名</strong><small>完成并转写后发送本条文字，最多请求一次；保留手动标题。</small></span><input id="auto-title-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
-            <label class="toggle-row"><span><strong>AI 模糊查找</strong><small>点击查找时，发送描述与当前范围内的候选文字，帮助找回想法。</small></span><input id="ai-search-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
-            <label class="toggle-row"><span><strong>AI 整理时同时发送截图</strong><small>开启后，每次 AI 整理会附上该条原始截图，帮助理解当时场景；可能包含敏感信息并增加费用。仅支持静态图片，不上传录音，暂不支持视频分析。</small></span><input id="screenshot-analysis-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
-            <label class="field-label" for="api-key">DeepSeek API Key <span id="key-status">未设置</span></label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="留空保留已保存密钥"><p class="field-help">由操作系统加密保存在本机，不回显密钥。</p>
-            <label class="field-label" for="model-input">模型</label><select id="model-input"><option value="deepseek-flash">deepseek-flash</option><option value="deepseek-v4-pro">deepseek-v4-pro</option></select>
-            <div class="privacy-note"><p>API 使用你的密钥计费。启用直接开始后，点击相应功能即按授权发送文字；截图按上方开关附送。可随时关闭授权，录音不上传。</p></div>
-          </section>
-          <section class="settings-card semantic-card"><h2>本地语义模型</h2><p class="field-help">用于在本机匹配和关联灵感，标准版已内置。组件缺失时可在这里安装，无需另装服务。</p><p id="semantic-status" class="field-help" role="status">正在检查本地模型…</p><progress id="semantic-progress" class="semantic-progress hidden" max="100" value="0" aria-label="本地模型安装进度"></progress><div class="semantic-actions"><button id="semantic-install" class="button secondary compact" type="button">安装本地模型</button><button id="semantic-cancel" class="button quiet compact hidden" type="button">取消安装</button><button id="semantic-retry" class="button secondary compact hidden" type="button">重试</button></div></section>
-          <details class="settings-card timing-card"><summary>高级：触发时序与功能键</summary><p class="field-help">便于调试长按触发。修改后点击“保存设置”才生效。</p>
+      <section id="chat-view" class="page-view chat-page hidden" aria-label="聊天"><div id="chat-root"></div></section>
+      <section id="notes-view" class="page-view notes-page" aria-label="笔记" data-note-open="false">
+        <aside class="notes-navigator" aria-label="笔记列表">
+          <div class="notebook-column-heading"><h2 class="notebook-column-title">笔记</h2></div>
+          <label class="search-box notes-search"><span data-ui-icon="search" aria-hidden="true"></span><input id="notes-query" type="search" maxlength="200" autocomplete="off" placeholder="搜索笔记…" aria-label="搜索笔记"></label>
+          <div class="notes-list-tools">
+            <div class="notes-list-actions">
+              <div class="notes-list-selection">
+                <input id="notes-select-all" class="record-selection-master" type="checkbox" aria-label="全选当前范围的笔记">
+                <button id="notes-select-toggle" class="button quiet compact ui-hover-action" type="button" aria-pressed="false">多选</button>
+              </div>
+              <div class="notes-list-create">
+                <button id="new-note" class="icon-button ui-hover-action" type="button" data-ui-icon="add" aria-label="新建笔记" title="新建笔记"></button>
+                <button id="organize-notes" class="icon-button ui-hover-action hidden" type="button" data-ui-icon="sparkle" aria-label="AI 分类" title="AI 分类未分类笔记" aria-haspopup="dialog" aria-controls="notes-grouping-dialog" disabled></button>
+              </div>
+            </div>
+            <div id="notes-selection-status" class="notes-selection-status hidden">
+              <span id="notes-selection-count" role="status"></span>
+              <button id="notes-selection-actions" class="icon-button" type="button" data-ui-icon="more" aria-label="批量操作" title="批量操作" aria-haspopup="menu" disabled></button>
+            </div>
+            <div id="notes-grouping-progress" class="notes-grouping-progress hidden"><span role="status">正在整理笔记…</span><button id="cancel-notes-grouping" class="button quiet compact" type="button">取消</button></div>
+          </div>
+          <div id="notes-list" class="notes-list"></div>
+          <p id="notes-list-status" class="notes-list-status hidden" role="status"></p>
+          <button id="notes-more" class="button quiet compact hidden" type="button">加载更多</button>
+        </aside>
+        <div class="notes-content">
+          <div id="notes-empty" class="notes-empty">
+            <div class="notes-welcome-heading">
+              <svg class="notes-welcome-mark" viewBox="6.25 3 5.25 10.75" aria-hidden="true" focusable="false">
+                <path d="M7.8 7.15 C8.7 6.8 10.55 6.8 10 8.45 L8.8 11.85 C8.55 12.55 8.9 12.7 9.55 12.3 L10.05 11.95 L9.65 13 C8.5 13.8 6.2 13.6 6.85 11.55 L8.02 8.35 C8.2 7.8 8 7.6 7.3 7.85 L7.55 7.25 Z"/>
+                <circle cx="10.05" cy="4.5" r="1.22"/>
+              </svg>
+              <h1>写下第一句</h1>
+            </div>
+            <button id="new-note-from-empty" class="button compact primary" type="button" data-ui-icon="add">新建笔记</button>
+            <section id="notes-recent" class="notes-recent hidden" aria-labelledby="notes-recent-heading">
+              <h2 id="notes-recent-heading">最近编辑</h2>
+              <ul id="notes-recent-list" class="notes-recent-list"></ul>
+            </section>
+          </div>
+          <article id="note-editor" class="note-editor hidden" aria-label="编辑笔记">
+            <header class="note-toolbar">
+              <button id="note-back" class="icon-button" type="button" data-ui-icon="back" aria-label="返回笔记列表" title="返回笔记列表"></button>
+              <span id="note-status" role="status"></span>
+              <button id="note-retry" class="button quiet compact hidden" type="button">重试保存</button>
+              <button id="note-group" class="icon-button hidden" type="button" data-ui-icon="folder-in" aria-label="添加到组" title="添加到组" aria-haspopup="dialog"></button>
+              <button id="note-background" class="icon-button hidden" type="button" data-ui-icon="transcript" aria-label="背景信息" title="背景信息" aria-haspopup="dialog" aria-controls="note-background-dialog" aria-expanded="false"></button>
+              <button id="note-ai-summary" class="button quiet compact" type="button" data-ui-icon="sparkle" aria-label="AI 总结全文" aria-description="将笔记正文和来源信息发送给已配置的 AI。开启截图辅助理解时会附带一张已保存的来源截图。" title="AI 总结全文">总结</button>
+              <button id="note-attach" class="button quiet compact" type="button" data-ui-icon="add" title="插入图片、视频或添加文件，也可按 Ctrl+V 粘贴">插入文件</button>
+              <button id="note-delete" class="icon-button danger" type="button" data-ui-icon="trash" aria-label="删除笔记" title="删除笔记"></button>
+            </header>
+            <div class="note-document">
+              <input id="note-title" class="ui-caret-focus" type="text" maxlength="500" placeholder="标题" aria-label="笔记标题" autocomplete="off">
+              <div id="note-format"></div>
+              <div id="note-body" class="ui-caret-focus" contenteditable="true" role="textbox" aria-multiline="true" aria-label="笔记正文" aria-placeholder="写下你的想法…" spellcheck="false"></div>
+              <section id="note-ai-inline" class="note-ai-popover hidden" aria-label="选段 AI">
+                <form id="note-ai-form" class="note-ai-form hidden">
+                  <input id="note-ai-instruction" class="ui-caret-focus" type="text" maxlength="4000" placeholder="输入修改要求" aria-label="修改要求" aria-description="发送所选文字和修改要求。开启选段前后文时会一并发送相邻正文。" autocomplete="off">
+                  <button id="note-ai-submit" class="icon-button ui-confirm" type="submit" data-ui-icon="send" aria-label="发送改写要求" title="发送改写要求" disabled></button>
+                </form>
+                <div class="note-ai-reply">
+                  <div class="note-ai-copy">
+                    <textarea id="note-ai-result" class="ui-caret-focus hidden" rows="1" readonly aria-label="选段总结"></textarea>
+                    <div id="note-ai-preview-wrap" class="hidden">
+                      <button id="note-ai-preview-help" type="button" aria-label="移动改写预览" aria-description="拖动或用方向键移动。点击可在编辑区上下切换。" title="移动预览"><span id="note-ai-preview-label">高亮部分将替换原选段</span></button>
+                      <div id="note-ai-preview" role="region" tabindex="0" aria-label="改写后预览" aria-describedby="note-ai-preview-label"></div>
+                    </div>
+                    <p id="note-ai-feedback" class="field-help" role="status" aria-atomic="true"></p>
+                  </div>
+                  <button id="note-ai-accept" class="icon-button ui-confirm hidden" type="button" data-ui-icon="check" aria-label="接受修改" title="接受修改"></button>
+                  <button id="note-ai-dismiss" class="icon-button" type="button" data-ui-icon="close" aria-label="关闭" title="关闭"></button>
+                </div>
+              </section>
+              <section id="note-attachments-section" class="note-section hidden" aria-labelledby="note-attachments-heading"><h2 id="note-attachments-heading">附件</h2><div id="note-summaries"></div><div id="note-attachments"></div></section>
+              <section id="note-links-section" class="note-section hidden" aria-labelledby="note-links-heading"><h2 id="note-links-heading">链接</h2><ul id="note-links"></ul></section>
+            </div>
+          </article>
+        </div>
+        <dialog id="note-background-dialog" class="note-background-dialog" aria-labelledby="note-background-heading">
+          <header class="note-background-header"><h2 id="note-background-heading">背景信息</h2><button id="close-note-background" class="icon-button" type="button" data-ui-icon="close" aria-label="关闭背景信息" title="关闭背景信息" autofocus></button></header>
+          <div id="note-background-content" class="note-background-content"></div>
+        </dialog>
+      </section>
+      <section id="settings-view" class="page-view settings-page hidden" aria-label="偏好设置">
+        <nav class="settings-nav" aria-label="设置分类">
+          <button id="settings-nav-capture" class="button quiet settings-nav-button" type="button" data-settings-section="capture" aria-controls="settings-capture" aria-current="true">录音与截图</button>
+          <button id="settings-nav-ai" class="button quiet settings-nav-button" type="button" data-settings-section="ai" aria-controls="settings-ai" aria-current="false">AI 服务</button>
+          <button id="settings-nav-local" class="button quiet settings-nav-button" type="button" data-settings-section="local" aria-controls="settings-local" aria-current="false">本地组件</button>
+          <button id="settings-nav-maintenance" class="button quiet settings-nav-button" type="button" data-settings-section="maintenance" aria-controls="settings-maintenance" aria-current="false">维护</button>
+        </nav>
+        <div id="settings-scroll-body" class="settings-scroll-body">
+          <form id="settings-form" class="settings-grid">
+          <section id="settings-capture" class="settings-pane" data-settings-pane="capture" aria-labelledby="settings-capture-title">
+            <h1 id="settings-capture-title">录音与截图</h1>
+            <section class="settings-card">
+              <h2>快捷键</h2>
+              <div class="settings-inline-row">
+                <div><span class="settings-row-title" id="region-shortcut-label">截图录音快捷键</span><p id="region-shortcut-hint" class="field-help">点击后按下组合键，松开即保存。按 Esc 取消。</p></div>
+                <button id="region-shortcut-input" class="button secondary region-shortcut-button" type="button" aria-labelledby="region-shortcut-label" aria-pressed="false" aria-describedby="region-shortcut-value region-shortcut-hint region-shortcut-error"><span id="region-shortcut-value" aria-live="polite">Ctrl+Shift+F9</span></button>
+              </div>
+              <p id="region-shortcut-error" class="inline-edit-feedback hidden" role="status"></p>
+            </section>
+            <section class="settings-card">
+              <h2>长按触发</h2>
+              <label class="toggle-row"><span><strong>启用长按触发</strong><small>首次按住录音，松开暂停，点击可继续。</small></span><input id="input-enabled" type="checkbox" checked><span class="toggle" aria-hidden="true"></span></label>
+              <label class="toggle-row"><span><strong>长按时保存背景截图</strong><small>截取触发时的来源窗口，存入笔记的「背景信息」。</small></span><input id="capture-screenshots" type="checkbox" checked><span class="toggle" aria-hidden="true"></span></label>
+              <details class="settings-advanced"><summary>应用例外</summary>
+                <label class="field-label" for="excluded-apps">不响应长按的应用</label>
+                <textarea id="excluded-apps" rows="3" placeholder="每行一个进程名，例如 KeePass.exe"></textarea>
+                <p class="field-help">这些应用保留原按键行为。</p>
+              </details>
+              <details class="settings-advanced timing-card"><summary>触发时序与功能键</summary>
             <div class="timing-grid">
               <div><label class="field-label" for="preview-delay-input">进度条出现前等待 <span>毫秒</span></label><input id="preview-delay-input" type="number" min="0" max="5000" step="50" value="0"></div>
               <div><label class="field-label" for="threshold-input">进度条填充时长 <span>毫秒</span></label><input id="threshold-input" type="number" min="250" max="10000" step="50" value="550"></div>
@@ -83,21 +212,73 @@
               <div><label class="field-label" for="keyboard-trigger-input">额外长按键</label><select id="keyboard-trigger-input"><option value="none">不使用功能键</option><option value="F8">F8</option><option value="F9">F9</option><option value="F10">F10</option></select><p class="field-help">右键仍可触发；功能键在确认前松开时保留原操作。</p></div>
             </div>
             <div class="timing-timeline"><strong>当前时间线</strong><p id="timing-timeline" role="status" aria-live="polite"></p><small>截图耗时另计；麦克风就绪后才录音，等待时松开会暂停。</small></div><button id="reset-timing" class="button secondary compact" type="button">恢复时序默认</button><p id="timing-result" class="field-help" role="status"></p><p class="field-help">保存后切换到其他应用试按；InMoment 内不接管长按。</p>
-          </details>
-          <section class="settings-card reset-settings-card"><div><h2>恢复默认设置</h2><p class="field-help">保留记录、附件和已保存密钥，关闭云端功能。更新软件不会重置设置。</p></div><button id="reset-settings" class="button secondary compact" type="button">恢复全部设置默认</button></section>
-          <div class="settings-actions"><span id="settings-result" role="status"></span><button class="button primary" type="submit">保存设置</button></div>
-        </form>
+              </details>
+            </section>
+          </section>
+          <section id="settings-ai" class="settings-pane hidden" data-settings-pane="ai" aria-labelledby="settings-ai-title">
+            <h1 id="settings-ai-title">AI 服务</h1>
+            <section class="settings-card ai-settings-card">
+              <h2>连接服务</h2>
+              <label class="toggle-row"><span><strong>启用云端 AI</strong><small>仅运行已授权的功能，费用计入所选 API 项目。</small></span><input id="cloud-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+              <div class="ai-provider-fields">
+                <div><label class="field-label" for="ai-provider-trigger">服务提供方</label><button id="ai-provider-trigger" class="button secondary ai-provider-select-trigger" type="button" data-ui-icon="chevron" aria-haspopup="menu" aria-expanded="false" aria-label="AI 服务：DeepSeek" aria-describedby="ai-provider-help">DeepSeek</button><select id="ai-provider" class="hidden" tabindex="-1" aria-hidden="true" aria-label="AI 服务"><option value="deepseek">DeepSeek</option><option value="openai">OpenAI（GPT）</option><option value="gemini">Gemini</option></select></div>
+                <div><label class="field-label" for="api-key"><span id="api-key-label-text">DeepSeek API Key</span><span id="key-status">未设置</span></label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="留空保留已保存密钥" aria-describedby="ai-provider-help"></div>
+              </div>
+              <p id="ai-provider-help" class="field-help">各服务的密钥由操作系统加密并分别保存在本机。</p>
+              <div id="prefer-free-model-row" class="hidden"><label class="toggle-row"><span><strong>优先使用免费模型</strong><small id="prefer-free-model-help">适用于自动选模的聊天，免费额度以 API Key 所属项目为准。</small></span><input id="prefer-free-model" type="checkbox" checked aria-label="优先使用免费模型" aria-describedby="prefer-free-model-help"><span class="toggle" aria-hidden="true"></span></label></div>
+              <details class="settings-advanced manual-model-details"><summary>模型选择</summary>
+                <label class="toggle-row"><span><strong>手动指定模型</strong><small>默认由 InMoment 根据请求内容选模。</small></span><input id="model-manual-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+                <div class="ai-model-field"><label class="field-label" for="model-input">模型名称</label><div class="ai-model-input-row"><input id="model-input" type="text" maxlength="100" pattern="[A-Za-z0-9][A-Za-z0-9._:\-]*" autocomplete="off" spellcheck="false" aria-describedby="ai-model-help"><button id="ai-model-presets" class="button quiet ai-model-presets" type="button" data-ui-icon="chevron" aria-haspopup="menu" aria-expanded="false" aria-label="选择模型预设" title="选择模型预设"></button></div><datalist id="ai-model-options" class="hidden" aria-hidden="true"></datalist></div>
+                <p id="ai-model-help" class="field-help">选择预设，或填写模型名称。</p>
+              </details>
+            </section>
+            <section class="settings-card">
+              <h2>功能与授权</h2>
+              <label class="toggle-row"><span><strong>点击 AI 按钮时直接开始</strong><small>确认授权后，点击 AI 功能即发起请求。批量整理最多每条记录一次总结请求，再发一次归类请求。</small></span><input id="direct-ai-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+              <label class="toggle-row"><span><strong>自动命名</strong><small>转写完成后，用本条文字生成标题。每条最多一次，保留手动标题。</small></span><input id="auto-title-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+              <label class="toggle-row"><span><strong>AI 模糊查找</strong><small>查找时发送描述和当前范围内的候选文字。</small></span><input id="ai-search-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+              <label class="toggle-row"><span><strong>附带选段前后文</strong><small>总结或改写时，发送选区前后各最多 900 字的笔记正文。</small></span><input id="note-selection-context-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+              <label class="toggle-row"><span><strong>AI 整理时同时发送截图</strong><small>附送原始静态截图以帮助理解场景。截图可能包含敏感信息并增加费用，录音保留在本机。</small></span><input id="screenshot-analysis-enabled" type="checkbox"><span class="toggle" aria-hidden="true"></span></label>
+            </section>
+          </section>
+          <section id="settings-local" class="settings-pane hidden" data-settings-pane="local" aria-labelledby="settings-local-title">
+            <h1 id="settings-local-title">本地组件</h1>
+            <section class="settings-card"><h2>录音与转写状态</h2><div id="capability-status" class="capability-status"></div></section>
+            <section class="settings-card semantic-card"><h2>本地语义模型</h2><p class="field-help">用于在本机进行语义匹配。标准版已内置，组件缺失时可在这里安装。</p><p id="semantic-status" class="field-help" role="status">正在检查本地模型…</p><progress id="semantic-progress" class="semantic-progress hidden" max="100" value="0" aria-label="本地模型安装进度"></progress><div class="semantic-actions"><button id="semantic-install" class="button secondary compact" type="button">安装本地模型</button><button id="semantic-cancel" class="button quiet compact hidden" type="button">取消安装</button><button id="semantic-retry" class="button secondary compact hidden" type="button">重试</button></div></section>
+          </section>
+          <section id="settings-maintenance" class="settings-pane hidden" data-settings-pane="maintenance" aria-labelledby="settings-maintenance-title">
+            <h1 id="settings-maintenance-title">维护</h1>
+            <section class="settings-card reset-settings-card"><div><h2>恢复默认设置</h2><p class="field-help">恢复偏好设置并关闭云端功能，保留笔记、附件和已保存的密钥。</p></div><button id="reset-settings" class="button secondary compact" type="button">恢复默认</button></section>
+          </section>
+          </form>
+        </div>
+        <footer class="settings-footer"><div class="settings-actions"><span id="settings-result" role="status"></span><button class="button primary" type="submit" form="settings-form">保存设置</button></div></footer>
       </section>
-      <div id="session-banner" class="session-banner hidden"><span class="session-dot"></span><div><strong id="session-title">正在记录</strong><small id="session-description"></small></div><button id="session-pause" class="button secondary compact">暂停</button><button id="session-continue" class="button secondary compact hidden">继续录音</button><button id="session-finish" class="button primary compact hidden">完成记录</button><button id="session-discard" class="icon-button" aria-label="删除当前草稿" title="删除草稿">×</button></div>
+      <div id="session-banner" class="session-banner hidden"><span class="session-dot"></span><div><strong id="session-title">正在记录</strong><small id="session-description"></small></div><button id="session-pause" class="button secondary compact" data-ui-icon="pause">暂停</button><button id="session-continue" class="button secondary compact hidden" data-ui-icon="play">继续录音</button><button id="session-finish" class="button primary compact hidden" data-ui-icon="check">存为笔记</button><button id="session-discard" data-ui-icon="trash" class="icon-button danger" aria-label="删除当前草稿" title="删除草稿"></button></div>
     </main>
+    </div>
   </div>
-  <dialog id="ai-search-dialog" class="ai-search-dialog" aria-labelledby="ai-search-title"><button id="close-ai-search" class="dialog-close icon-button" type="button" aria-label="关闭 AI 查找">×</button><h2 id="ai-search-title">凭印象找灵感</h2><form id="ai-search-form" novalidate><label class="field-label" for="ai-search-description">描述你记得的内容</label><textarea id="ai-search-description" rows="4" placeholder="例如：之前看作品集时，想到的那个保存阅读联想的方法…" required></textarea><label class="field-label" for="ai-search-scope">查找范围</label><select id="ai-search-scope"><option value="all">全部灵感</option><option value="current">当前分组</option></select><p id="ai-search-error" class="persistent-error hidden" role="alert"></p><div class="dialog-form-actions"><button id="submit-ai-search" class="button primary" type="submit">开始查找</button></div></form></dialog>
-  <dialog id="batch-results-dialog" class="batch-results-dialog" aria-labelledby="batch-results-title"><button id="close-batch-results" class="dialog-close icon-button" type="button" aria-label="关闭整理结果">×</button><h2 id="batch-results-title">整理结果</h2><p id="batch-results-status" class="field-help" role="status"></p><div id="batch-results-list" class="batch-results-list"></div><div class="dialog-form-actions"><button id="apply-batch-groups" class="button primary" type="button" disabled>采用所选分组建议</button></div></dialog>
-  <dialog id="group-management-dialog" class="group-management-dialog" aria-labelledby="group-management-title"><button id="close-group-management" class="dialog-close icon-button" type="button" aria-label="关闭分组管理">×</button><h2 id="group-management-title">管理分组</h2><p class="field-help">改名、合并或删除分组不会删除灵感。</p><div class="topic-create"><input id="new-topic-name" type="text" maxlength="60" placeholder="分组名称" aria-label="新分组名称"><button id="create-topic" class="button secondary compact" type="button">创建分组</button></div><div class="topic-management-toolbar"><button id="merge-topic-groups" class="button secondary compact" type="button">合并分组</button><button id="delete-topic-groups" class="button secondary compact" type="button">删除分组</button></div><div id="topic-management-selection" class="topic-management-selection hidden"><button id="select-all-topic-groups" class="button quiet compact" type="button">全选</button><span id="topic-selection-count" role="status">已选 0 个分组</span><button id="apply-topic-selection" class="button primary compact" type="button" disabled>下一步</button><button id="cancel-topic-selection" class="button quiet compact" type="button">取消</button></div><div id="topic-management-list"></div><p id="topic-management-status" class="field-help" role="status"></p></dialog>
-  <dialog id="guide-dialog"><button id="close-guide" class="dialog-close icon-button" aria-label="关闭指南">×</button><h2>先把想法留下</h2><ol class="guide-steps"><li><span>01</span><div><strong>按住右键，等进度条填满</strong><p>提前松开仍是普通右键；填满后展开录音菜单。</p></div></li><li><span>02</span><div><strong>松开暂停</strong><p>可以回听、删除，或保存本次记录。</p></div></li><li><span>03</span><div><strong>点击继续，自由表达</strong><p>后续无需按住，点击暂停结束这一段。</p></div></li></ol><p class="guide-note">也可点击左上角的麦克风按钮手动录音。语音在本机转写，模型不可用时仍保留录音。</p><button id="guide-done" class="button primary">知道了</button></dialog>
+  <dialog id="ai-search-dialog" class="ai-search-dialog" aria-labelledby="ai-search-title"><button id="close-ai-search" class="dialog-close icon-button" type="button" aria-label="关闭 AI 查找" data-ui-icon="close"></button><h2 id="ai-search-title">凭印象找灵感</h2><form id="ai-search-form" novalidate><label class="field-label" for="ai-search-description">描述你记得的内容</label><textarea id="ai-search-description" rows="4" placeholder="例如：之前看作品集时，想到的那个保存阅读联想的方法…" required></textarea><label class="field-label" for="ai-search-scope">查找范围</label><select id="ai-search-scope"><option value="all">全部灵感</option><option value="current">当前分组</option></select><p id="ai-search-error" class="persistent-error hidden" role="alert"></p><div class="dialog-form-actions"><button id="submit-ai-search" data-ui-icon="sparkle" class="button primary" type="submit">开始查找</button></div></form></dialog>
+  <dialog id="batch-results-dialog" class="batch-results-dialog" aria-labelledby="batch-results-title"><button id="close-batch-results" class="dialog-close icon-button" type="button" aria-label="关闭整理结果" data-ui-icon="close"></button><h2 id="batch-results-title">整理结果</h2><p id="batch-results-status" class="field-help" role="status"></p><div id="batch-results-list" class="batch-results-list"></div><div class="dialog-form-actions"><button id="apply-batch-groups" class="button primary" type="button" disabled>采用所选分组建议</button></div></dialog>
+  <dialog id="notes-grouping-dialog" class="batch-results-dialog" aria-labelledby="notes-grouping-title"><button id="close-notes-grouping" class="dialog-close icon-button" type="button" aria-label="关闭分组建议" data-ui-icon="close"></button><h2 id="notes-grouping-title">分组建议</h2><p id="notes-grouping-status" class="field-help" role="status"></p><div id="notes-grouping-list" class="batch-results-list"></div><div class="dialog-form-actions"><button id="apply-notes-grouping" class="button primary" type="button" disabled>采用分组建议</button></div></dialog>
+  <dialog id="group-management-dialog" class="group-management-dialog" aria-labelledby="group-management-title"><button id="close-group-management" class="dialog-close icon-button" type="button" aria-label="关闭分组管理" data-ui-icon="close"></button><h2 id="group-management-title">管理分组</h2><p class="field-help">改名、合并或删除分组会保留原有笔记。</p><div class="topic-create"><input id="new-topic-name" type="text" maxlength="60" placeholder="分组名称" aria-label="新分组名称"><button id="create-topic" class="button secondary compact" type="button" data-ui-icon="folder-plus">创建分组</button></div><div class="topic-management-toolbar"><button id="merge-topic-groups" class="button secondary compact" type="button" data-ui-icon="merge">合并分组</button><button id="delete-topic-groups" data-ui-icon="trash" class="button secondary compact danger" type="button">删除分组</button></div><div id="topic-management-selection" class="topic-management-selection hidden"><button id="select-all-topic-groups" class="button quiet compact" type="button">全选</button><span id="topic-selection-count" role="status">已选 0 个分组</span><button id="apply-topic-selection" class="button primary compact" type="button" disabled>下一步</button><button id="cancel-topic-selection" class="button quiet compact" type="button">取消</button></div><div id="topic-management-list"></div><p id="topic-management-status" class="field-help" role="status"></p></dialog>
+  <dialog id="guide-dialog"><button id="close-guide" class="dialog-close icon-button" aria-label="关闭指南" data-ui-icon="close"></button><h2>先把想法留下</h2><ol class="guide-steps"><li><span>01</span><div><strong>按住右键，等进度条填满</strong><p>提前松开仍是普通右键；填满后开始录音，胶囊显示音量与时长。</p></div></li><li><span>02</span><div><strong>松开暂停</strong><p>展开录音面板，可以回听、删除，或保存本次记录。</p></div></li><li><span>03</span><div><strong>点击继续，自由表达</strong><p>后续无需按住，点击左侧暂停图标暂停这一段。</p></div></li></ol><p class="guide-note" id="region-shortcut-guide">按 Ctrl+Shift+F9，拖动框选，松手即开始录音。</p><p class="guide-note">语音在本机转写，模型不可用时可保留录音或手动补写。</p><button id="guide-done" class="button primary">知道了</button></dialog>
   <div id="toast" class="toast hidden" role="status"></div>
-  <dialog id="screenshot-dialog" class="screenshot-dialog" aria-labelledby="screenshot-viewer-title"><header class="screenshot-viewer-header"><div><h2 id="screenshot-viewer-title">来源截图</h2><p id="screenshot-dimensions">正在读取原图…</p></div><button id="close-screenshot" class="icon-button" aria-label="关闭原图">×</button></header><div class="screenshot-viewer-toolbar"><div class="screenshot-zoom-actions"><button id="screenshot-zoom-out" class="button secondary compact" type="button" aria-label="缩小原图">−</button><span id="screenshot-zoom-label">—</span><button id="screenshot-zoom-in" class="button secondary compact" type="button" aria-label="放大原图">＋</button><button id="screenshot-fit" class="button secondary compact" type="button">适应窗口</button><button id="screenshot-actual-size" class="button secondary compact" type="button">100%</button></div><button id="screenshot-reveal" class="button secondary compact" type="button">打开所在文件夹 ↗</button></div><div id="screenshot-viewer-error" class="screenshot-viewer-error hidden" role="alert"></div><div id="screenshot-viewport" class="screenshot-viewport"><img id="screenshot-full-image" alt="来源窗口的原始截图"></div><p class="screenshot-viewer-help">滚轮缩放 · 拖动查看 · 双击适应 / 100% · Esc 关闭</p></dialog>
-  <dialog id="confirm-dialog" class="confirmation-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message confirm-detail"><button id="confirm-close" type="button" class="dialog-close icon-button" aria-label="取消并关闭">×</button><div id="confirm-marker" class="confirmation-marker" aria-hidden="true">i</div><h2 id="confirm-title">请确认</h2><p id="confirm-message" class="confirmation-message"></p><p id="confirm-detail" class="confirmation-detail"></p><div id="confirm-actions" class="confirmation-actions"></div></dialog>
-  <script src="dialogs.js"></script><script src="popovers.js"></script><script src="cloud.js"></script><script src="semantic-ui.js"></script><script src="app.js"></script>
+  <dialog id="confirm-dialog" class="confirmation-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message confirm-detail"><button id="confirm-close" type="button" class="dialog-close icon-button" aria-label="取消并关闭" data-ui-icon="close"></button><div id="confirm-marker" class="confirmation-marker" aria-hidden="true">i</div><h2 id="confirm-title">请确认</h2><p id="confirm-message" class="confirmation-message"></p><p id="confirm-detail" class="confirmation-detail"></p><div id="confirm-actions" class="confirmation-actions"></div></dialog>
+  <script src="notes-grouping.js"></script>
+  <script src="topic-tree.js"></script>
+  <script src="note-document.js"></script>
+  <script src="note-history.js"></script>
+  <script src="note-selection.js"></script>
+  <script src="note-format.js"></script>
+  <script src="note-media.js"></script>
+  <script src="../shared/screenshot-model.js"></script>
+  <script src="note-image-editor.js"></script>
+  <script src="../shared/note-outline.js"></script>
+  <script src="note-image-viewer.js"></script>
+  <script src="note-rewrite.js"></script>
+  <script src="../shared/note-list-expansion.js"></script>
+  <script src="../shared/ai-providers.js"></script><script src="../shared/ui-motion.js"></script><script src="../shared/ui-icons.js"></script><script src="dialogs.js"></script><script src="modal-chrome.js"></script><script src="popovers.js"></script><script src="cloud.js"></script><script src="semantic-ui.js"></script><script src="../shared/brand-morph.js"></script><script src="../shared/brand-scissors.js"></script><script src="../shared/ui-toast.js"></script><script src="../vendor/katex/katex.min.js"></script><script src="../shared/chat-message-text.js"></script><script src="../shared/chat-quote-text.js"></script><script src="../shared/chat-navigation.js"></script><script src="../shared/chat-view.js"></script><script src="notes.js"></script><script src="app.js"></script>
 </body>
 </html>
+

@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using System.Windows.Automation;
 
 namespace InMoment.Native
 {
@@ -124,6 +125,7 @@ namespace InMoment.Native
                 {
                     case "configure": result = Trigger.Configure(args); break;
                     case "foreground": result = SourceInfo.ReadForeground().Public(); break;
+                    case "readContext": result = CaptureContext.Read(args); break;
                     case "focusWindow": result = FocusWindow(args); break;
                     case "captureWindow": result = Capture(args); break;
                     case "speechEngines": result = new { engines = SpeechEngines() }; break;
@@ -177,6 +179,20 @@ namespace InMoment.Native
             if (Win32.IsIconic(hwnd)) Win32.ShowWindow(hwnd, 9); // SW_RESTORE
             bool foregroundRequested = Win32.SetForegroundWindow(hwnd);
             bool actualSuccess = Win32.GetForegroundWindow() == hwnd;
+            // Activation of another UI thread is queued. Observe the one accepted
+            // request before reporting success and rearming capture; never issue
+            // another focus request or synthesize input to obtain permission.
+            if (foregroundRequested && !actualSuccess)
+            {
+                var settling = Stopwatch.StartNew();
+                while (!actualSuccess && settling.ElapsedMilliseconds < 250)
+                {
+                    Thread.Sleep(5);
+                    actualSuccess = Win32.GetForegroundWindow() == hwnd;
+                }
+            }
+            Win32.GetWindowThreadProcessId(hwnd, out actualPid);
+            actualSuccess = actualSuccess && Win32.IsWindow(hwnd) && actualPid == expectedPid;
             return new { success = actualSuccess, hwnd = hwnd.ToInt64().ToString(CultureInfo.InvariantCulture), pid = actualPid,
                 processName = actualProcessName, foregroundRequested = foregroundRequested,
                 error = actualSuccess ? null : new { code = "FOREGROUND_DENIED", message = "Windows did not grant foreground focus. Select the original application from the taskbar." } };
@@ -437,6 +453,62 @@ namespace InMoment.Native
         }
     }
 
+    internal static class CaptureContext
+    {
+        public static object Read(Dictionary<string, object> args)
+        {
+            long handle; uint expectedPid;
+            if (!Int64.TryParse(Program.GetString(args, "hwnd", ""), out handle) || !UInt32.TryParse(Program.GetString(args, "pid", ""), out expectedPid))
+                throw new NativeError("INVALID_PARAMS", "A captured window and process are required.");
+            IntPtr hwnd = new IntPtr(handle); uint actualPid;
+            Win32.GetWindowThreadProcessId(hwnd, out actualPid);
+            if (hwnd == IntPtr.Zero || !Win32.IsWindow(hwnd) || expectedPid != actualPid || hwnd != Win32.GetForegroundWindow())
+                return new { selectedText = "", url = "" };
+            string selected = "", address = "";
+            try
+            {
+                AutomationElement focused = AutomationElement.FocusedElement;
+                if (focused != null && focused.Current.ProcessId == actualPid && !focused.Current.IsPassword)
+                {
+                    AutomationElement item = focused;
+                    for (int depth = 0; item != null && depth < 8; depth++)
+                    {
+                        if (item.Current.ProcessId != actualPid || item.Current.IsPassword) break;
+                        object pattern;
+                        if (item.TryGetCurrentPattern(TextPattern.Pattern, out pattern))
+                        {
+                            var ranges = ((TextPattern)pattern).GetSelection();
+                            if (ranges != null) selected = String.Join("\n", ranges.Take(8).Select(range => range.GetText(12000)).Where(value => !String.IsNullOrWhiteSpace(value))).Trim();
+                            if (selected.Length > 12000) selected = selected.Substring(0, 12000);
+                            if (selected.Length > 0) break;
+                        }
+                        item = TreeWalker.ControlViewWalker.GetParent(item);
+                    }
+                }
+                var source = SourceInfo.ReadWindow(hwnd, false);
+                string processName = source.ProcessName.ToLowerInvariant();
+                if (new[] { "chrome", "msedge", "firefox", "brave", "opera", "vivaldi" }.Contains(processName))
+                {
+                    AutomationElement root = AutomationElement.FromHandle(hwnd);
+                    var edits = root.FindAll(TreeScope.Descendants, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit));
+                    for (int i = 0; i < Math.Min(100, edits.Count); i++)
+                    {
+                        if (edits[i].Current.IsPassword) continue;
+                        object pattern;
+                        string name = edits[i].Current.Name ?? "";
+                        if (!(name.IndexOf("address", StringComparison.OrdinalIgnoreCase) >= 0 || name.Contains("地址") || name.IndexOf("url", StringComparison.OrdinalIgnoreCase) >= 0)) continue;
+                        if (!edits[i].TryGetCurrentPattern(ValuePattern.Pattern, out pattern)) continue;
+                        string value = ((ValuePattern)pattern).Current.Value; Uri uri;
+                        if (value != null && value.Length <= 8192 && Uri.TryCreate(value, UriKind.Absolute, out uri) && (uri.Scheme == "http" || uri.Scheme == "https")) { address = value; break; }
+                    }
+                }
+            }
+            catch { /* Selection/URL are optional. Never synthesize copy keys or read the clipboard. */ }
+            if (hwnd != Win32.GetForegroundWindow()) selected = "";
+            return new { selectedText = selected, url = address };
+        }
+    }
+
     internal sealed class HoldTiming
     {
         private long Started;
@@ -497,6 +569,7 @@ namespace InMoment.Native
         private int PressThresholdMs;
         private int PressPreviewDelayMs;
         private string PressTrigger;
+        private bool ChatGestureSent;
         private uint PressKey;
         private Win32.POINT PressPoint;
         private volatile bool Disposed;
@@ -645,6 +718,7 @@ namespace InMoment.Native
             PressPoint = point;
             PressTrigger = trigger;
             PressKey = key;
+            ChatGestureSent = false;
             PressThresholdMs = ThresholdMs;
             PressPreviewDelayMs = PreviewDelayMs;
             PressState = 1;
@@ -673,6 +747,12 @@ namespace InMoment.Native
             int msg = message.ToInt32();
             lock (Gate)
             {
+                if (msg == 0x020A && PressState == 2 && PressTrigger == "right-button") // WM_MOUSEWHEEL
+                {
+                    short delta = unchecked((short)(mouse.mouseData >> 16));
+                    if (delta > 0 && !ChatGestureSent) { ChatGestureSent = true; Emit("holdChat", new { trigger = PressTrigger }); }
+                    if (ChatGestureSent) return new IntPtr(1);
+                }
                 if (msg == 0x0204) // WM_RBUTTONDOWN
                 {
                     SourceInfo source = Source;
@@ -1038,6 +1118,7 @@ namespace InMoment.Native
                             Require(count("holdPreviewStart") == 0 && count("holdStart") == 0, "Disabled hook emitted a preview.");
                             cases.Add("disabled-trigger-passes-through");
 
+                            Require(WaitFor(ModifiersReleased, 2000), "A keyboard modifier is already held; the isolated function-key test did not send any function key.");
                             foreach (uint key in new uint[] { 0x77, 0x78, 0x79 })
                             {
                                 int keyIndex = (int)key - 0x77;
@@ -1074,14 +1155,9 @@ namespace InMoment.Native
 
                                 reset();
                                 trigger.Configure(new Dictionary<string, object> { { "enabled", true } });
-                                SendKey(0xA2, false); // Ctrl+function key must remain an app shortcut.
-                                try
-                                {
-                                    SendKey(key, false);
-                                    Thread.Sleep(420);
-                                    SendKey(key, true);
-                                }
-                                finally { SendKey(0xA2, true); }
+                                // The immediate preview makes a short modifier chord sufficient. Pair
+                                // releases in the same input batch so a focus change cannot strand a modifier.
+                                SendKeys(TestKey(0xA2, false), TestKey(key, false), TestKey(key, true), TestKey(0xA2, true));
                                 Require(WaitFor(delegate { return form.KeyUps[keyIndex] >= 1; }, 1000), triggerName + " modifier shortcut was swallowed.");
                                 Require(count("holdPreviewStart") == 0 && count("holdStart") == 0 && form.KeyDowns[keyIndex] == 1, triggerName + " modifier shortcut incorrectly armed capture.");
                                 cases.Add(triggerName.ToLowerInvariant() + "-modifier-combination-passes-through");
@@ -1090,7 +1166,7 @@ namespace InMoment.Native
                         catch (Exception ex) { failure = ex; }
                         finally
                         {
-                            lock (events) diagnostics = new { observedInputs = trigger.TestObservedInputs, taggedInputs = trigger.TestTaggedInputs, foregroundMatches = trigger.TestForegroundMatches, events = events.Select(e => new { name = e["event"], reason = Program.Get((Dictionary<string, object>)e["data"], "reason") }).ToArray(), downs = form.Downs, ups = form.Ups };
+                            lock (events) diagnostics = new { observedInputs = trigger.TestObservedInputs, taggedInputs = trigger.TestTaggedInputs, foregroundMatches = trigger.TestForegroundMatches, events = events.Select(e => new { name = e["event"], reason = Program.Get((Dictionary<string, object>)e["data"], "reason") }).ToArray(), downs = form.Downs, ups = form.Ups, keyDowns = form.KeyDowns, keyUps = form.KeyUps, modifiersReleased = ModifiersReleased() };
                             trigger.Dispose();
                             Win32.SetCursorPos(originalCursor.x, originalCursor.y);
                             form.BeginInvoke((Action)delegate { form.Close(); });
@@ -1116,13 +1192,21 @@ namespace InMoment.Native
                 dx = x, dy = y, dwFlags = 0x0001 | 0x4000 | 0x8000 | buttonFlags, dwExtraInfo = MouseTrigger.TestInjectionTag } } };
             Require(Win32.SendInput(1, new Win32.INPUT[] { input }, Marshal.SizeOf(typeof(Win32.INPUT))) == 1, "Windows refused synthetic input for the isolated test window.");
         }
-        private static void SendKey(uint key, bool up)
+        private static bool ModifiersReleased()
+        {
+            return new[] { 0x10, 0x11, 0x12, 0x5B, 0x5C }.All(key => (Win32.GetAsyncKeyState(key) & 0x8000) == 0);
+        }
+        private static Win32.INPUT TestKey(uint key, bool up)
+        {
+            return new Win32.INPUT { type = 1, data = new Win32.INPUTUNION { keyboard = new Win32.KEYBDINPUT {
+                wVk = (ushort)key, dwFlags = up ? 2u : 0u, dwExtraInfo = MouseTrigger.TestInjectionTag } } };
+        }
+        private static void SendKey(uint key, bool up) { SendKeys(TestKey(key, up)); }
+        private static void SendKeys(params Win32.INPUT[] input)
         {
             RequireActiveDesktop();
             Require(Win32.GetForegroundWindow() == OwnedWindow, "The synthetic keyboard target is not the isolated foreground window; no input was sent.");
-            var input = new Win32.INPUT { type = 1, data = new Win32.INPUTUNION { keyboard = new Win32.KEYBDINPUT {
-                wVk = (ushort)key, dwFlags = up ? 2u : 0u, dwExtraInfo = MouseTrigger.TestInjectionTag } } };
-            Require(Win32.SendInput(1, new Win32.INPUT[] { input }, Marshal.SizeOf(typeof(Win32.INPUT))) == 1, "Windows refused a synthetic key for the isolated test window.");
+            Require(Win32.SendInput((uint)input.Length, input, Marshal.SizeOf(typeof(Win32.INPUT))) == input.Length, "Windows refused synthetic keys for the isolated test window.");
         }
         private static void RequireActiveDesktop()
         {

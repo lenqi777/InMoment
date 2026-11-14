@@ -23,6 +23,18 @@ test('folder reveal selects the stored original screenshot without exposing a pa
   assert.equal(fs.readFileSync(fx.revealed[0], 'utf8'), 'synthetic-original-image');
 });
 
+test('background and region screenshots reveal their own files and reject foreign IDs', t => {
+  const fx = fixture(t);
+  const draft = fx.store.createDraft({ id: 'two-captures' });
+  const background = fx.store.addScreenshot(draft.id, Buffer.from('background'));
+  const region = fx.store.addScreenshot(draft.id, Buffer.from('region'), { method: 'region' });
+  const record = fx.store.complete(draft.id);
+  revealScreenshot(fx.services, record.id, background.id);
+  revealScreenshot(fx.services, record.id);
+  assert.throws(() => revealScreenshot(fx.services, record.id, 'foreign-id'), /没有可打开的截图/u);
+  assert.deepEqual(fx.revealed, [background.id, region.id].map(id => record.screenshots.find(item => item.id === id).path));
+});
+
 test('missing screenshot, provisional draft, and deleted record never open an arbitrary folder', t => {
   const fx = fixture(t); const draft = fx.store.createDraft({});
   assert.throws(() => revealScreenshot(fx.services, draft.id), /正式记录/);

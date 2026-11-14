@@ -6,6 +6,11 @@ const path = require('node:path');
 const os = require('node:os');
 const { spawn } = require('node:child_process');
 const { createHash } = require('node:crypto');
+const { prepareAudioSegments } = require('./asr-audio.cjs');
+
+const PROVIDER = 'sherpa-onnx';
+const MODEL = 'SenseVoiceSmall';
+const MAX_BATCH_PARTS = 4;
 
 function failure(code, message) { return Object.assign(new Error(message), { code }); }
 function aborted() { return Object.assign(new Error('本地转写已取消。'), { name: 'AbortError', code: 'ABORT_ERR' }); }
@@ -102,6 +107,8 @@ class OfflineASR {
       try { manifest = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')); }
       catch { throw failure('ASR_CONFIG_INVALID', '离线转写配置无法读取，请重新运行安装脚本。'); }
     }
+    if (manifest.provider === 'whisper.cpp' || manifest.model === 'base') throw failure('ASR_UPGRADE_REQUIRED', '本地转写已改用 SenseVoiceSmall，请重新运行离线语音安装脚本。');
+    if ((manifest.provider && manifest.provider !== PROVIDER) || (manifest.model && manifest.model !== MODEL)) throw failure('ASR_CONFIG_INVALID', '离线转写组件与 SenseVoiceSmall 不匹配，请重新运行安装脚本。');
     const inside = relative => {
       if (typeof relative !== 'string' || !relative || path.isAbsolute(relative)) throw failure('ASR_CONFIG_INVALID', '离线转写路径配置无效。');
       const absolute = path.resolve(this.rootDir, relative);
@@ -110,9 +117,10 @@ class OfflineASR {
       return absolute;
     };
     return {
-      binaryPath: inside(manifest.binaryPath || 'bin/whisper-cli.exe'),
-      modelPath: inside(manifest.modelPath || 'models/ggml-base.bin'),
-      model: 'base', version: manifest.version || '1.9.5', buildTag: manifest.buildTag || 'b5454',
+      binaryPath: inside(manifest.binaryPath || 'bin/sherpa-onnx-offline.exe'),
+      modelPath: inside(manifest.modelPath || 'models/sensevoice.int8.onnx'),
+      tokensPath: inside(manifest.tokensPath || 'models/tokens.txt'),
+      model: MODEL, version: manifest.version || '2.0.1', modelVersion: manifest.modelRevision || manifest.modelVersion || '2024-07-17',
     };
   }
 
@@ -121,17 +129,18 @@ class OfflineASR {
       const configuration = this.configuration();
       const present = file => { try { return fs.statSync(file).isFile() && fs.statSync(file).size > 0; } catch { return false; } };
       const binaryAvailable = present(configuration.binaryPath);
-      const modelAvailable = present(configuration.modelPath);
-      return { available: binaryAvailable && modelAvailable, provider: 'whisper.cpp', model: 'base', language: 'zh',
-        version: configuration.version, buildTag: configuration.buildTag, binaryAvailable, modelAvailable,
+      const modelAvailable = present(configuration.modelPath) && present(configuration.tokensPath);
+      return { available: binaryAvailable && modelAvailable, provider: PROVIDER, model: MODEL, language: 'zh',
+        version: configuration.version, modelVersion: configuration.modelVersion, binaryAvailable, modelAvailable,
         rootDir: this.rootDir, offline: true, reason: binaryAvailable && modelAvailable ? null : 'not-installed' };
-    } catch { return { available: false, provider: 'whisper.cpp', model: 'base', offline: true, reason: 'invalid-configuration' }; }
+    } catch (error) { return { available: false, provider: PROVIDER, model: MODEL, offline: true, reason: error.code === 'ASR_UPGRADE_REQUIRED' ? 'upgrade-required' : 'invalid-configuration' }; }
   }
 
   async transcribe(record, { signal } = {}) {
     checkSignal(signal);
-    if (!this.capabilities().available) throw failure('CAPABILITY_UNAVAILABLE', '离线中文转写尚未安装，请先运行离线语音安装脚本。');
+    if (!this.capabilities().available) throw failure('CAPABILITY_UNAVAILABLE', 'SenseVoiceSmall 本地转写尚未就绪，请先运行离线语音安装脚本。');
     if (!Array.isArray(record?.segments) || !record.segments.length) throw failure('NO_AUDIO', '这条记录没有可转写的音频。');
+    if (new Set(record.segments.map(segment => segment?.id)).size !== record.segments.length) throw failure('ASR_INVALID_RECORD', '录音片段标识重复，未开始转写。');
     const configuration = this.configuration();
     const started = this.now();
     const jobsDir = this.assertSafeJobsDirectory({ create: true });
@@ -141,35 +150,34 @@ class OfflineASR {
     const timings = [];
     let audioDurationMs = 0;
     try {
-      for (let index = 0; index < record.segments.length; index++) {
+      const { parts, originals } = await prepareAudioSegments(record.segments, tempDir, { checkCancelled: () => checkSignal(signal) });
+      const words = new Map(originals.map(segment => [segment.id, []]));
+      audioDurationMs = originals.reduce((sum, segment) => sum + segment.durationMs, 0);
+      // The native CLI pads a whole batch into one tensor; bound both memory and command size.
+      for (let index = 0; index < parts.length; index += MAX_BATCH_PARTS) {
         checkSignal(signal);
-        const segment = record.segments[index];
-        if (typeof segment.path !== 'string' || !fs.existsSync(segment.path)) throw failure('AUDIO_UNAVAILABLE', '录音文件已不可用。');
-        if (path.extname(segment.path).toLowerCase() !== '.wav') throw failure('UNSUPPORTED_AUDIO', '离线转写需要 WAV 录音。');
-        const outputPrefix = path.join(tempDir, `segment-${index}`);
-        const args = ['-m', configuration.modelPath, '-f', segment.path, '-l', 'zh', '-oj', '-of', outputPrefix,
-          '-ng', '-np', '-t', String(Math.min(8, Math.max(1, os.availableParallelism?.() || os.cpus().length || 1)))];
-        await this.run(configuration.binaryPath, args, {
-          signal, timeoutMs: Math.min(30 * 60 * 1000, Math.max(60000, (Number(segment.durationMs) || 0) * 8 + 30000)),
+        const batch = parts.slice(index, index + MAX_BATCH_PARTS);
+        const args = [`--sense-voice-model=${configuration.modelPath}`, `--tokens=${configuration.tokensPath}`,
+          '--sense-voice-language=zh', '--sense-voice-use-itn=true', '--provider=cpu', '--debug=false',
+          `--num-threads=${Math.min(8, Math.max(1, os.availableParallelism?.() || os.cpus().length || 1))}`, ...batch.map(part => part.name)];
+        const stdout = await this.run(configuration.binaryPath, args, {
+          signal, cwd: tempDir, timeoutMs: Math.min(30 * 60 * 1000, Math.max(60000, batch.reduce((sum, part) => sum + part.endMs - part.startMs, 0) * 8 + 30000)),
         });
         checkSignal(signal);
         let output;
         try {
-          const jsonPath = `${outputPrefix}.json`;
-          if (fs.statSync(jsonPath).size > 8 * 1024 * 1024) throw new Error('oversized');
-          output = JSON.parse(fs.readFileSync(jsonPath, 'utf8').replace(/^\uFEFF/, ''));
-          if (!Array.isArray(output.transcription)) throw new Error('invalid-format');
+          output = stdout.replace(/^\uFEFF/, '').split(/\r?\n/u).map(line => line.trim()).filter(Boolean).map(line => JSON.parse(line));
+          if (output.length !== batch.length || output.some(item => typeof item?.text !== 'string')) throw new Error('invalid-format');
         } catch { throw failure('ASR_OUTPUT_INVALID', '离线转写结果无法读取，可重试或手动补充文字。'); }
-        const pieces = output.transcription.filter(item => typeof item?.text === 'string');
-        const text = pieces.map(item => item.text.trim()).filter(Boolean).join(' ').slice(0, 1000000);
-        transcripts.push({ id: segment.id, text });
-        timings.push(...pieces.map(item => ({ segmentId: segment.id, text: item.text.trim(),
-          startMs: Math.max(0, Number(item.offsets?.from) || 0), endMs: Math.max(0, Number(item.offsets?.to) || 0) })));
-        audioDurationMs += Math.max(0, Number(segment.durationMs) || 0);
+        for (let offset = 0; offset < batch.length; offset++) {
+          const part = batch[offset], text = output[offset].text.trim();
+          if (text) { words.get(part.segmentId).push(text); timings.push({ segmentId: part.segmentId, text, startMs: part.startMs, endMs: part.endMs }); }
+        }
       }
+      transcripts.push(...originals.map(segment => ({ id: segment.id, text: words.get(segment.id).join(' ') })));
       checkSignal(signal);
       const durationMs = Math.max(0, Math.round(this.now() - started));
-      return { provider: 'whisper.cpp', model: 'base', language: 'zh', segments: transcripts, timings,
+      return { provider: PROVIDER, model: MODEL, language: 'zh', segments: transcripts, timings, timingGranularity: 'audio-chunk',
         text: transcripts.map(segment => segment.text).filter(Boolean).join('\n'),
         durationMs, audioDurationMs, rtf: audioDurationMs > 0 ? durationMs / audioDurationMs : null,
         status: transcripts.some(segment => segment.text) ? 'recognized' : 'no-speech-recognized' };
@@ -181,18 +189,32 @@ class OfflineASR {
     }
   }
 
-  run(binaryPath, args, { signal, timeoutMs }) {
+  run(binaryPath, args, { signal, timeoutMs, cwd }) {
     checkSignal(signal);
     return new Promise((resolve, reject) => {
       let child;
-      try { child = this.spawn(binaryPath, args, { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'], cwd: path.dirname(binaryPath) }); }
+      try { child = this.spawn(binaryPath, args, { windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'], cwd: cwd || path.dirname(binaryPath) }); }
       catch { reject(failure('ASR_START_FAILED', '离线转写程序无法启动。')); return; }
       let wasAborted = false;
       let timedOut = false;
       let spawnFailed = false;
-      // Drain diagnostics and transcription prints without storing or exposing their contents.
-      child.stdout?.resume();
-      child.stderr?.resume();
+      let stdout = '', outputBytes = 0, oversized = false;
+      let runtimeFailed = false, diagnosticTail = '';
+      // Only structured stdout is retained for the caller; diagnostics never enter logs/errors.
+      child.stdout?.setEncoding?.('utf8');
+      child.stdout?.on('data', data => {
+        if (oversized || wasAborted || timedOut) return;
+        outputBytes += Buffer.byteLength(data);
+        if (outputBytes > 8 * 1024 * 1024) { oversized = true; stdout = ''; child.kill(); }
+        else stdout += data;
+      });
+      child.stderr?.setEncoding?.('utf8');
+      child.stderr?.on('data', data => {
+        // sherpa can catch an ONNX exception, print this marker, and still exit 0 with empty text.
+        const diagnostic = diagnosticTail + data;
+        if (/Caught\s+(?:Ort::)?exception\b|Return an empty result|\bbad_alloc\b|out of memory/iu.test(diagnostic)) runtimeFailed = true;
+        diagnosticTail = diagnostic.slice(-256);
+      });
       const abort = () => { wasAborted = true; child.kill(); };
       signal?.addEventListener('abort', abort, { once: true });
       const timer = setTimeout(() => { timedOut = true; child.kill(); }, timeoutMs);
@@ -200,11 +222,13 @@ class OfflineASR {
       child.once('close', code => {
         clearTimeout(timer);
         signal?.removeEventListener('abort', abort);
+        diagnosticTail = '';
         if (wasAborted || signal?.aborted) reject(aborted());
         else if (timedOut) reject(failure('ASR_TIMEOUT', '离线转写用时过长，请缩短录音后重试。'));
         else if (spawnFailed) reject(failure('ASR_START_FAILED', '离线转写程序无法启动，请确认安装完整。'));
-        else if (code !== 0) reject(failure('ASR_FAILED', '离线转写未完成，可重试或手动补充文字。'));
-        else resolve();
+        else if (oversized) reject(failure('ASR_OUTPUT_INVALID', '离线转写结果超过本地处理上限。'));
+        else if (code !== 0 || runtimeFailed) reject(failure('ASR_FAILED', '离线转写未完成，可重试或手动补充文字。'));
+        else resolve(stdout);
       });
       if (signal?.aborted) abort();
     });

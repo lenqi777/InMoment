@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "provider": "sherpa-onnx",
+  "version": "2.0.1",
+  "model": "SenseVoiceSmall",
+  "modelRevision": "2024-07-17",
+  "precision": "INT8",
+  "binaryPath": "bin/sherpa-onnx-offline.exe",
+  "modelPath": "models/sensevoice.int8.onnx",
+  "tokensPath": "models/tokens.txt",
+  "runtimeArchive": {
+    "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/v2.0.1/sherpa-onnx-v2.0.1-win-x64-shared-MT-Release-no-tts.tar.bz2",
+    "filename": "sherpa-onnx-v2.0.1-win-x64-shared-MT-Release-no-tts.tar.bz2",
+    "directory": "sherpa-onnx-v2.0.1-win-x64-shared-MT-Release-no-tts",
+    "bytes": 25567228,
+    "sha256": "a644dfe2f7944afec9a356d2557c0452380f20ffcf2f8c704653cfce37558596"
+  },
+  "modelArchive": {
+    "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+    "filename": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+    "directory": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+    "bytes": 163002883,
+    "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e"
+  },
+  "files": [
+    {
+      "path": "bin/sherpa-onnx-offline.exe",
+      "archive": "runtime",
+      "entry": "bin/sherpa-onnx-offline.exe",
+      "bytes": 2763776,
+      "sha256": "047bff7c67bedbf99d1a0e55773ed6770f67d161466f6e4977af3e217de99e27"
+    },
+    {
+      "path": "bin/onnxruntime.dll",
+      "archive": "runtime",
+      "entry": "bin/onnxruntime.dll",
+      "bytes": 17799168,
+      "sha256": "7f66f939a881baf4f46a2216496798edf4a1429878b646d12674aa62f27d8a25"
+    },
+    {
+      "path": "bin/onnxruntime_providers_shared.dll",
+      "archive": "runtime",
+      "entry": "bin/onnxruntime_providers_shared.dll",
+      "bytes": 104960,
+      "sha256": "551d0e1fe4c227d8542314ba718d52f4379e0c7bfe729a37c59833a884e27b4d"
+    },
+    {
+      "path": "models/sensevoice.int8.onnx",
+      "archive": "model",
+      "entry": "model.int8.onnx",
+      "bytes": 239233841,
+      "sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"
+    },
+    {
+      "path": "models/tokens.txt",
+      "archive": "model",
+      "entry": "tokens.txt",
+      "bytes": 315894,
+      "sha256": "f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc"
+    },
+    {
+      "path": "SHERPA-ONNX-LICENSE.txt",
+      "document": "SHERPA-ONNX-v2.0.1-LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "ONNXRUNTIME-LICENSE.txt",
+      "document": "ONNXRUNTIME-v1.28.2-LICENSE.txt",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+    },
+    {
+      "path": "ONNXRUNTIME-ThirdPartyNotices.txt",
+      "document": "ONNXRUNTIME-v1.28.2-ThirdPartyNotices.txt",
+      "bytes": 325054,
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2"
+    },
+    {
+      "path": "SENSEVOICE-MODEL-LICENSE.txt",
+      "document": "FUNASR-MODEL-LICENSE.txt",
+      "bytes": 5306,
+      "sha256": "7dba975a2069691db4992b0592d70828b330d2f8a30a71450f4e152a554e84f8"
+    },
+    {
+      "path": "SENSEVOICE-ORIGINAL-LICENSE.txt",
+      "document": "SENSEVOICE-ORIGINAL-LICENSE.txt",
+      "bytes": 71,
+      "sha256": "221c6df10b0931a5629adad671ea48fb7747e034c414b6d2bfa275bc3dd4ea17"
+    }
+  ]
+}

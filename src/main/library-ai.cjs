@@ -17,8 +17,8 @@ function cancelled(signal) {
 function estimateTokens(value) { return Buffer.byteLength(typeof value === 'string' ? value : JSON.stringify(value), 'utf8'); }
 function versionOf(record) { return record.version ?? record.contentVersion ?? ''; }
 function signature(records) { return createHash('sha256').update(JSON.stringify(records.map(record => [record.id, versionOf(record), record.organizationStale ? null : [record.organization?.generatedAt, record.organization?.summary, record.organization?.context], (record.topics || []).map(topic => [topic.id, topic.name])]).sort((a, b) => a[0].localeCompare(b[0])))).digest('hex'); }
-function textOf(record) { return [record.notes, ...(record.segments?.length ? record.segments.map(segment => segment.transcript || '') : [record.transcript])].filter(Boolean).join('\n').trim(); }
-function searchText(record) { return [record.title, textOf(record), record.task, record.notes, record.source?.title, record.source?.windowTitle, record.source?.appName, record.source?.processName, record.source?.url, !record.organizationStale && record.organization?.summary, !record.organizationStale && JSON.stringify(record.organization?.context || {}), ...(record.topics || []).map(topic => topic.name)].filter(Boolean).join('\n').toLocaleLowerCase(); }
+function textOf(record) { return record.hasTranscriptOverride ? String(record.transcript ?? '').trim() : [record.notes, ...(record.segments?.length ? record.segments.map(segment => segment.transcript || '') : [record.transcript])].filter(Boolean).join('\n').trim(); }
+function searchText(record) { return [record.title, textOf(record), record.task, !record.hasTranscriptOverride && record.notes, record.source?.title, record.source?.windowTitle, record.source?.appName, record.source?.processName, record.source?.url, !record.organizationStale && record.organization?.summary, !record.organizationStale && JSON.stringify(record.organization?.context || {}), ...(record.topics || []).map(topic => topic.name)].filter(Boolean).join('\n').toLocaleLowerCase(); }
 function normalizeFilters(filters = {}) {
   const result = normalizeRequestFilters(filters);
   if (result.topicIds) result.topicIds.sort();
@@ -72,7 +72,7 @@ class LibraryAI {
   constructor({ store, client, readImage = null, semantic = null } = {}) {
     if (!store || !client) throw new Error('A local store and injectable AI client are required.');
     this.store = store; this.client = client; this.readImage = readImage; this.semantic = semantic;
-    this.searchCache = new Map(); this.examinedPairs = new Set(); this.indexSignature = '';
+    this.searchCache = new Map(); this.examinedPairs = new Set(); this.indexSignature = ''; this.pairProvider = '';
   }
 
   getClient() { return typeof this.client === 'function' ? this.client() : this.client; }
@@ -81,14 +81,15 @@ class LibraryAI {
     const current = this.store.getRecord(record.id);
     return current && inScope(current, filters) && String(versionOf(current)) === String(versionOf(record));
   }
-  clearCache() { this.searchCache.clear(); this.examinedPairs.clear(); this.indexSignature = ''; }
+  clearCache() { this.searchCache.clear(); this.examinedPairs.clear(); this.indexSignature = ''; this.pairProvider = ''; }
 
-  async search({ query, filters = {}, approved = false, signal, candidateLimit = MAX_CANDIDATES } = {}) {
+  async search({ query, filters = {}, approved = false, signal, candidateLimit = MAX_CANDIDATES, client:requestClient } = {}) {
     if (approved !== true) throw new ApprovalRequiredError();
     cancelled(signal);
     if (typeof query !== 'string' || !query.trim() || query.length > 1000) throw new Error('Describe the inspiration in 1 to 1000 characters.');
     const scope = normalizeFilters(filters); const records = this.records(scope);
-    const index = signature(records); const cacheKey = JSON.stringify([query.trim(), scope, index, Math.min(MAX_CANDIDATES, Number(candidateLimit) || MAX_CANDIDATES), this.getClient().model || '']);
+    const client = requestClient || this.getClient();
+    const index = signature(records); const cacheKey = JSON.stringify([query.trim(), scope, index, Math.min(MAX_CANDIDATES, Number(candidateLimit) || MAX_CANDIDATES), client.provider || 'deepseek', client.model || '']);
     if (this.searchCache.has(cacheKey)) return { ...structuredClone(this.searchCache.get(cacheKey)), cached: true, usage: usageEmpty() };
     const usage = usageEmpty(); const coverage = { scopeCount: records.length, candidateCount: 0, examinedCount: 0, notExaminedCount: records.length, hasMore: records.length > 0, mode: 'local-candidates-ai-ranked' };
     const limitations = ['先由本地语义向量与关键词召回候选，再由 AI 排序；只上传本次有限候选，可能漏检。'];
@@ -98,7 +99,6 @@ class LibraryAI {
     const semanticMatches = await this.semantic.search({ query: query.trim(), filters: scope, limit: MAX_CANDIDATES, signal });
     cancelled(signal);
     if (!Array.isArray(semanticMatches)) throw new Error('本地语义检索未返回有效候选。');
-    const client = this.getClient();
     const interpretedEstimate = estimateTokens({ query }) + 1000;
     if (interpretedEstimate > SEARCH_INPUT_BUDGET - 2000) throw new Error('The query exceeds the search budget.');
     const interpreted = await client.interpretQuery(query.trim(), { approved: true, signal, maxTokens: 300 });
@@ -181,10 +181,12 @@ class LibraryAI {
     return [...pairs.values()].sort((a, b) => b.score - a.score || b.right.createdAt - a.right.createdAt);
   }
 
-  async analyzeDuplicates({ filters = {}, approved = false, signal, limit = MAX_CANDIDATES } = {}) {
+  async analyzeDuplicates({ filters = {}, approved = false, signal, limit = MAX_CANDIDATES, client:requestClient } = {}) {
     if (approved !== true) throw new ApprovalRequiredError();
     cancelled(signal);
     const scope = normalizeFilters(filters); const records = this.records(scope);
+    const client = requestClient || this.getClient(); const provider = JSON.stringify([client.provider || 'deepseek', client.model || '']);
+    if (this.pairProvider !== provider) { this.examinedPairs.clear(); this.indexSignature = ''; this.pairProvider = provider; }
     // Indexing is local; only a bounded selection of likely pairs is uploaded.
     records.byId = new Map(records.map(record => [record.id, record]));
     const index = signature(records);
@@ -211,7 +213,6 @@ class LibraryAI {
       pairs.push(nextPairs.at(-1)); estimate = nextEstimate;
     }
     const usage = usageEmpty(); let suggestions = []; let developments = [];
-    const client = this.getClient();
     if (pairs.length) {
       const response = await client.findDuplicates([...selected.values()], { approved: true, signal, maxTokens: 1500, pairs });
       cancelled(signal); addUsage(usage, response, estimate);

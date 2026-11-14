@@ -96,6 +96,19 @@ test('user notes remain searchable evidence even when an audio transcript also e
   assert.equal(result.results.length, 1); assert.match(result.results[0].quote, /作品集/);
 });
 
+test('whole-text edits replace old notes and audio text in AI search evidence', async () => {
+  const f = fixture([record('one', '新的作品集想法', { hasTranscriptOverride: true, notes: '旧的私密笔记', segments: [{ transcript: '旧的录音文字' }] })], { interpret: async () => ({ terms: ['作品集'] }) });
+  const result = await f.library.search({ query: '作品集', approved: true });
+  assert.equal(result.results.length, 1);
+  const candidate = f.calls.find(call => call[0] === 'rank')[1][0];
+  assert.equal(candidate.text, '新的作品集想法');
+  assert.equal(JSON.stringify(candidate).includes('旧的'), false);
+  f.stored[0].transcript = ''; f.stored[0].version++;
+  const empty = await f.library.search({ query: '作品集', approved: true });
+  assert.equal(empty.results.length, 0);
+  assert.equal(f.calls.filter(call => call[0] === 'rank').length, 1);
+});
+
 test('empty scope makes no AI calls; no local candidates makes only the interpretation call', async () => {
   const empty = fixture([]); const result = await empty.library.search({ query: '灵感', approved: true });
   assert.equal(result.coverage.scopeCount, 0); assert.equal(empty.calls.length, 0);

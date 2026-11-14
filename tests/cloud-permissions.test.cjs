@@ -17,7 +17,7 @@ function fixture(t, existing = {}) {
 test('upgrade adds disabled capability defaults in memory without rewriting custom settings or protected key', t => {
   const fx = fixture(t, { thresholdMs: 2780, cloudEnabled: true, apiKeyEncrypted: 'opaque-fixture', keyboardTrigger: 'F10' });
   assert.equal(fs.readFileSync(fx.file, 'utf8'), fx.original);
-  for (const key of ['aiSearchEnabled', 'duplicateAnalysisEnabled', 'screenshotAnalysisEnabled', 'directAIEnabled']) assert.equal(fx.settings.public()[key], false);
+  for (const key of ['aiSearchEnabled', 'duplicateAnalysisEnabled', 'screenshotAnalysisEnabled', 'noteSelectionContextEnabled', 'directAIEnabled']) assert.equal(fx.settings.public()[key], false);
   fx.settings.save({ menuDelayMs: 910 });
   assert.equal(fx.settings.value.apiKeyEncrypted, 'opaque-fixture'); assert.equal(fx.settings.public().thresholdMs, 2780);
   assert.equal(fx.settings.public().cloudEnabled, true);

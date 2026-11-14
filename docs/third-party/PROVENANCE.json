@@ -3,6 +3,12 @@
   "packageVersion": "0.10.0",
   "files": [
     {
+      "file": "TESSDATA-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/naptha/tessdata/gh-pages/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
       "file": "ONNXRUNTIME-v1.21.0-LICENSE.txt",
       "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.21.0/LICENSE",
       "bytes": 1073,
@@ -97,6 +103,42 @@
       "purpose": "historical-ASR-bundles-only-current-excludes-SDL2",
       "bytes": 884,
       "sha256": "9928507f684c1965d07f2b6ef4b4723d5efc2f6b4ab731f743a413c51c319927"
+    },
+    {
+      "file": "SHERPA-ONNX-v2.0.1-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/v2.0.1/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "purpose": "sensevoice-offline-asr"
+    },
+    {
+      "file": "ONNXRUNTIME-v1.28.2-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.28.2/LICENSE",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "purpose": "sensevoice-offline-asr"
+    },
+    {
+      "file": "ONNXRUNTIME-v1.28.2-ThirdPartyNotices.txt",
+      "source": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.28.2/ThirdPartyNotices.txt",
+      "bytes": 325054,
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2",
+      "purpose": "sensevoice-offline-asr"
+    },
+    {
+      "file": "FUNASR-MODEL-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/modelscope/FunASR/58830eca4012644aac0c3218c3ccc7d98f003fda/MODEL_LICENSE",
+      "bytes": 5306,
+      "sha256": "7dba975a2069691db4992b0592d70828b330d2f8a30a71450f4e152a554e84f8",
+      "purpose": "sensevoice-offline-asr"
+    },
+    {
+      "file": "SENSEVOICE-ORIGINAL-LICENSE.txt",
+      "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+      "bytes": 71,
+      "sha256": "221c6df10b0931a5629adad671ea48fb7747e034c414b6d2bfa275bc3dd4ea17",
+      "note": "Original LICENSE entry from the fixed model archive; links to the FunASR model license.",
+      "purpose": "sensevoice-offline-asr"
     }
   ],
   "subdirectories": [

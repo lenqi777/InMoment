@@ -1,0 +1,32 @@
+/* Motion follows the action: geometry for navigation, height for disclosure. */
+.ui-motion-snapshot { pointer-events:none!important; user-select:none; }
+.ui-motion-scrim { position:fixed; inset:0; z-index:999; pointer-events:none; background:var(--color-scrim); }
+::view-transition { pointer-events:none; }
+::view-transition-old(root),::view-transition-new(root) { animation:none; }
+::view-transition-group(inmoment-record) { animation-duration:280ms; animation-timing-function:cubic-bezier(.2,.75,.25,1); overflow:clip; border-radius:12px; }
+::view-transition-old(inmoment-record) { width:100%; height:100%; object-fit:cover; object-position:top left; animation:ui-record-leave 80ms ease both; }
+::view-transition-new(inmoment-record) { animation:ui-record-arrive 180ms 70ms ease both; }
+html[data-ui-transition-kind=record-close]::view-transition-group(inmoment-record) { animation-duration:240ms; }
+html[data-ui-transition-kind=record-close]::view-transition-new(inmoment-record) { animation-duration:100ms; animation-delay:160ms; }
+html[data-ui-transition-kind=record-switch]::view-transition-group(inmoment-record) { animation-duration:180ms; }
+::view-transition-group(inmoment-page) { animation-duration:180ms; }
+::view-transition-old(inmoment-page) { animation:ui-page-leave 120ms ease both; }
+::view-transition-new(inmoment-page) { animation:ui-page-arrive 180ms ease both; }
+::view-transition-group(inmoment-text) { animation-duration:160ms; }
+::view-transition-old(inmoment-text) { animation:ui-record-leave 90ms ease both; }
+::view-transition-new(inmoment-text) { animation:ui-record-arrive 140ms 30ms ease both; }
+dialog[open]::backdrop { animation:ui-backdrop-arrive 180ms ease both; }
+@keyframes ui-record-leave { to { opacity:0; } }
+@keyframes ui-record-arrive { from { opacity:0; } to { opacity:1; } }
+@keyframes ui-page-leave { to { opacity:0; transform:translateX(-8px); } }
+@keyframes ui-page-arrive { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
+@keyframes ui-backdrop-arrive { from { background:transparent; } }
+@media (width > 900px) and (prefers-reduced-motion: no-preference) {
+  body.notes-open .app-content { transition:grid-template-columns var(--motion-panel) cubic-bezier(.2,.75,.25,1); }
+  body.notes-open:not(.notebook-groups-collapsed) :is(.notebook-group-heading,.library-sidebar-content) {
+    transition:visibility 0s var(--motion-panel);
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*),dialog[open]::backdrop { animation:none!important; }
+}

@@ -1,68 +1,63 @@
 # InMoment
 
-**Say the thought while it is fresh. Keep the context that inspired it.**
+**Capture a thought in context. Turn it into a note, discuss it with AI, or share it with its sources.**
 
-[简体中文](README.md) · [User guide, Chinese](docs/USER_GUIDE.md) · [Changelog](CHANGELOG.md) · [Product decisions](docs/product/PRODUCT_STORY.md)
+[简体中文](README.md) · [User guide, Chinese](docs/USER_GUIDE.md) · [0.14.31 release notes, Chinese](docs/releases/0.14.31.md) · [Changelog](CHANGELOG.md) · [Product decisions](docs/product/PRODUCT_STORY.md)
 
-InMoment is a local-first Windows desktop app for capturing ideas while reading, browsing or exploring designs. Hold the right mouse button to record a thought alongside its source context. Return later to listen, review the screenshot, organize records, or search by what you remember.
+InMoment is a local-first Windows desktop app that brings recordings, screenshots, and source context into editable notes. Write a note directly or speak a thought while reading or working. Search, group, and export your notes, or bring notes and files into a chat and save useful exchanges back to the library.
 
-![InMoment library and groups](docs/assets/inbox.png)
+![InMoment 0.14.31 notes library and groups](docs/assets/releases/v0.14.31/home.png)
 
-*The interface uses synthetic example records and prepared summaries and groups. Demonstrations show the workflow, not measured AI quality.*
+*Screenshots show the actual 0.14.31 interface with isolated synthetic data and prepared AI examples. See the [asset provenance](docs/assets/releases/v0.14.31/PROVENANCE.json).*
 
-## Capture, review, find
+## Capture and organize
 
-- **Capture first.** The initial right-button hold records; releasing pauses. Clicking Continue then records hands-free until Pause is clicked. Every segment belongs to one draft, which you can complete or discard.
-- **Keep the context.** Review the original audio, transcript, source-window information and a single-window screenshot. Capture failures remain visible.
-- **Organize later.** Rename and group records yourself, or request an AI summary. Batch organization compares the currently displayed records and previews shared grouping suggestions for your approval.
-- **Find a half-remembered idea.** Use local keyword search, AI-assisted search with local candidates and cloud ranking, or the local idea cloud to browse related records.
-- **Continue a thought.** Create a linked new record while keeping each recording and its context separate.
+- **Speak the thought.** The first right-button hold starts recording; release to pause. Click Continue to record hands-free, then Pause. All segments stay in one draft. Choose whether to retain text, audio, or both when saving.
+- **Capture a region and speak.** Press `Ctrl+Shift+F9` and drag a selection. Release to start recording; annotate the screenshot and confirm it to add it to the draft. Open a note's background details to revisit retained audio, screenshots, and source information.
+- **Work in one library.** Handwritten notes save automatically. Recording and chat notes appear in the same library. Organize notes into groups, add links and files, or export notes as PDF or Markdown with their supporting attachments.
+- **Extract text from images.** Recognize text from a whole image or a selected region in note and chat image previews. OCR runs locally; copy the result or insert it into the note when working in the editor.
 
-![Switch between a transcript and its summary](docs/assets/workflow.gif)
+![InMoment 0.14.31 note details and source context](docs/assets/releases/v0.14.31/record-detail.png)
 
-[Watch the silent demo](docs/assets/inmoment-demo-silent.mp4) · [Read the user guide](docs/USER_GUIDE.md)
+## Discuss your sources
+
+Reference a note or attach PDFs, UTF-8 text, MP4 clips, and images in one message. Math renders locally. The side navigation jumps between questions and follows the current reading position. Main-window chats save automatically, and a whole conversation or selected messages can be saved as a note.
+
+![InMoment 0.14.31 chat and question navigation](docs/assets/releases/v0.14.31/chat.png)
+
+Choose DeepSeek, OpenAI (GPT), or Google Gemini for cloud AI. Let InMoment choose the answer model, or select a model and reasoning level yourself. Full-note summaries save as separate attachments; preview changes before applying a rewrite to selected text.
 
 ## Download and run
 
-The current app version is **0.10.0**, targeting **Windows 11 x64**. Choose the full portable package from the [0.10.0 Release](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0). A formal installer is not currently provided. The app interface and default speech transcription are currently Chinese.
+**Current source: 0.14.31 · Windows 11 x64.** See [GitHub Releases](https://github.com/lenqi777/InMoment/releases) for published portable archives, release notes, and checksums. The interface is in Chinese.
 
-1. Download `InMoment-0.10.0-win-x64-full.zip` and extract the entire archive to a local folder.
-2. Run `Install-InMoment.cmd` once. If the system runtime is missing, setup asks before downloading the official Microsoft installer and opens its original license/setup UI. Then run `InMoment.exe`. Keep its accompanying runtime and model folders together.
-3. Allow microphone access when prompted. Hold the right mouse button to record, release to pause, then complete the record.
-4. For cloud AI features, enter **your own DeepSeek API key** in Settings and enable the relevant permissions. Sending screenshots requires separate consent. API charges belong to your service account.
+1. Extract the entire `InMoment-0.14.31-win-x64-full.zip` archive to a local folder.
+2. Run `Install-InMoment.cmd` once. If the VC++ x64 Runtime is missing, setup asks before downloading and opening the official Microsoft installer. Then open `InMoment.exe`, keeping the other app and offline component files alongside it.
+3. Grant microphone permission to record, or create a note directly. The full package includes offline transcription, a local semantic model, and image OCR. Everyday local features require no API key or separate Node.js, pnpm, or Python installation.
+4. For cloud AI, open Settings → AI Services, enter a key for your chosen provider, and enable the permissions you need. Capabilities, quotas, and charges depend on your service account. See [AI service setup](docs/AI_PROVIDER_SETUP.md).
 
-The full package includes the app runtime, offline speech recognizer and local semantic model. End users do not need Node.js, pnpm or a separate model download. GitHub's automatically generated **Source code** archives are for development; see the [development guide](docs/DEVELOPMENT.md).
+![InMoment 0.14.31 AI provider settings](docs/assets/releases/v0.14.31/settings.png)
 
-The current full package and checksums are listed in the [0.10.0 Release](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0), and 11 historical packages are listed in the [historical binary archive](https://github.com/lenqi777/InMoment/releases/tag/history-binaries). Consult each Release for its assets, hashes and validation status. Clean-machine Windows acceptance and live cloud end-to-end validation remain pending, so compatibility across devices and service accounts has not yet been established.
+| Task | Where it runs and what it needs |
+| --- | --- |
+| Notes, recording, playback, transcription, keyword search, image OCR, PDF or Markdown export | On your device; recording and screenshots require applicable system permissions |
+| Chat, summaries, rewrites and AI grouping suggestions | Network access, an API key for the selected provider, and your consent |
+| PDF, text, video and image attachments in chat | Provider support is required. Gemini can receive original PDFs and MP4s, and GPT can receive original PDFs. DeepSeek receives locally extracted PDF text and sampled page images |
+| MP4 analysis with GPT or DeepSeek | Local frame sampling and transcription require external `ffmpeg.exe` and `ffprobe.exe`. Put them in `chat-media/bin/` next to the app, or on PATH. Gemini's original-video route does not need them |
 
-The release preparation updates the image dependency to address high-severity advisories. One moderate transitive advisory has no upstream fix yet; its restricted installation-tool path and remaining limits are recorded in the [dependency review](docs/releases/DEPENDENCY_REVIEW.md).
+GitHub's automatic **Source code** archives are for development. See [release readiness](docs/releases/READINESS.md) for verification results and runtime requirements.
 
-## Local and cloud features
+## Your data, upgrades and versions
 
-| Feature | Where it runs | What you supply |
-| --- | --- | --- |
-| Recording, playback, screenshots, editing and manual groups | On your device | Microphone and operating-system permissions |
-| Chinese speech transcription | Local whisper.cpp / Whisper base | Included in the full package |
-| Keyword search, semantic candidates and idea cloud | On your device; E5 for semantic features | Models included in the full package |
-| AI summaries, batch grouping, AI search and optional automatic titles | DeepSeek cloud | Your API key, network access and feature consent |
+Notes, audio, screenshots and attachments are stored in the current Windows user's application-data directory. Cloud AI starts disabled, and sending screenshots with AI organization requires separate consent. Note AI features do not upload original recordings. Chat attachments you send are handled by the chosen provider. API keys use Windows DPAPI protection; the library and media are not encrypted as a whole. See the [data policy](PRIVACY.md) and [security notes](SECURITY.md).
 
-Cloud features start disabled. Local recording, library management, transcription, keyword search and the idea cloud remain available without cloud AI. AI search's cloud ranking requires its permission. Transcription and semantic quality depend on the content and device.
+To upgrade, quit from the tray and back up `%APPDATA%\InMoment`, then extract the new version to a new folder. Use a separate data directory when evaluating an older version. See the [version inventory](docs/releases/VERSIONS.md). The [0.14.16 notes](docs/releases/0.14.16.md), [original animation](docs/assets/workflow.gif), and [silent demo](docs/assets/inmoment-demo-silent.mp4) remain available as historical material.
 
-## Your data
+## Development and validation
 
-Records, audio, screenshots and indexes stay in the current Windows user's application-data directory. Drafts remain local and provisional until completed. Discard revokes pending writes and clears the draft's files.
+InMoment began with the author's own note-taking workflow. The [product decisions](docs/product/PRODUCT_STORY.md) document requirements, interaction design, AI workflows, and validation. Automated checks use synthetic data and mocked responses; see the [validation log](docs/validation.md). Installation on a clean Windows system, live transcription quality, and cloud behavior still require testing in their respective environments.
 
-Authorized cloud features send selected text and source context; screenshots need separate consent. These features do not upload original audio. API keys use Windows DPAPI protection; the record database and media are not fully encrypted. Read the [data policy](PRIVACY.md) and [security notes](SECURITY.md).
-
-## Versions and validation
-
-Start with the current version. The [version inventory](docs/releases/VERSIONS.md) documents packages in the [historical binary archive](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) and their limits. Back up your data before using an older version, and avoid concurrent writes from different versions to the same data directory.
-
-This personal product project began with the author's own note-taking workflow. The author owns requirements, interaction design, AI workflow decisions and acceptance, with implementation and automated tests assisted by AI coding tools. [Product decisions and evidence boundaries](docs/product/PRODUCT_STORY.md) explain the tradeoffs.
-
-Automated tests use mocked model responses and synthetic data to check saving, cancellation, permissions, request scope and result application. See the [validation log](docs/validation.md). Real Chinese transcription, summary quality, grouping quality, retrieval recall and time savings still require systematic evaluation. No external user-growth or productivity results are claimed.
-
-Development requires Windows 11 x64, Node.js 24+ and pnpm 11.25.0:
+Development requires Windows 11 x64, Node.js 24+, and pnpm 11.25.0:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -72,6 +67,4 @@ pnpm test
 pnpm start
 ```
 
-See the [development guide](docs/DEVELOPMENT.md) for model preparation, isolated testing and packaging. Follow [AGENTS.md](AGENTS.md); live model or API calls during development require explicit approval.
-
-Source code is [MIT licensed](LICENSE). Bundled components retain their [own licenses and notices](THIRD_PARTY_NOTICES.md).
+See the [development guide](docs/DEVELOPMENT.md) for model preparation, isolated checks, and packaging. The source is [MIT licensed](LICENSE); bundled components retain their [own licenses](THIRD_PARTY_NOTICES.md).

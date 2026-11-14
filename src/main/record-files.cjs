@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
+const { preferredScreenshot } = require('./record-background.cjs');
 
 const AUDIO_EXTENSIONS = new Set(['.wav', '.webm', '.ogg', '.mp3', '.m4a']);
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
@@ -18,9 +19,9 @@ function recordDirectory(store, record) {
     return directory;
   } catch { throw new Error('这条记录的本地文件夹已不可用。'); }
 }
-function originalAttachment(store, record, { imageOnly = false } = {}) {
+function originalAttachment(store, record, { imageOnly = false, attachmentId } = {}) {
   const audio = imageOnly ? null : record.segments?.[0];
-  const image = record.screenshots?.[0];
+  const image = attachmentId === undefined ? preferredScreenshot(record) : record.screenshots?.find(item => item.id === attachmentId);
   const selected = audio || image;
   if (!selected) throw new Error('这条记录没有可打开的原始录音或截图。');
   const kind = audio ? 'audio' : 'image';
@@ -54,12 +55,11 @@ async function revealRecord({ store, shell }, id) {
   return { revealed: true, kind: 'folder' };
 }
 
-function revealScreenshot({ store, shell }, id) {
+function revealScreenshot({ store, shell }, id, attachmentId) {
   const record = savedRecord(store, id);
-  const screenshot = record.screenshots[0];
-  if (!screenshot) throw new Error('这条记录没有可打开的截图。');
-  const { filename } = originalAttachment(store, record, { imageOnly: true });
-  // The renderer supplies only a record ID. Never accept arbitrary paths or shell commands.
+  if (!record.screenshots.length || attachmentId !== undefined && !record.screenshots.some(item => item.id === attachmentId)) throw new Error('这条记录没有可打开的截图。');
+  const { filename } = originalAttachment(store, record, { imageOnly: true, attachmentId });
+  // Resolve attachment IDs against the saved record before using the shell.
   try { shell.showItemInFolder(filename); }
   catch { throw new Error('无法打开截图所在文件夹，请确认文件仍存在。'); }
   return { revealed: true };

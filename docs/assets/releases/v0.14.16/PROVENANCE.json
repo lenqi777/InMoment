@@ -1,0 +1,61 @@
+{
+  "preparedAt": "2026-11-09",
+  "applicationVersion": "0.14.16",
+  "syntheticOnly": true,
+  "productAPICalls": 0,
+  "productModelRuns": 0,
+  "microphoneActivations": 0,
+  "desktopCaptures": 0,
+  "method": "Actual InMoment BrowserWindow.capturePage with a dedicated synthetic data directory. No desktop capture. AI output is preset.",
+  "screenshots": [
+    {
+      "file": "home.png",
+      "description": "分组主页与合成灵感卡片",
+      "width": 2160,
+      "height": 1440,
+      "sha256": "68117cc43834d8ff2f683610285ce8bd4bee1a655611a191f4b78ae9cd76df49",
+      "syntheticOnly": true,
+      "aiResultsPreset": true
+    },
+    {
+      "file": "record-detail.png",
+      "description": "真实详情布局、合成音频、预置摘要及原创来源页面",
+      "width": 2160,
+      "height": 1440,
+      "sha256": "d8b0f3cf7fdc5a16b58967a458cb9f5f88edbbb18aa480204f71bc0904289103",
+      "syntheticOnly": true,
+      "aiResultsPreset": true
+    },
+    {
+      "file": "chat.png",
+      "description": "已保存示例聊天、预置回复、独立引用卡片与图片附件",
+      "width": 2160,
+      "height": 1440,
+      "sha256": "5b32b73fde00b4e5db553fc11d296e6f62e8d196eeddbd1c27d014e21e79f10d",
+      "syntheticOnly": true,
+      "aiResultsPreset": true
+    },
+    {
+      "file": "settings.png",
+      "description": "AI 服务下拉菜单，云端关闭且未填写密钥",
+      "width": 2160,
+      "height": 1440,
+      "sha256": "6d926dc814d09a63a42f763a5bb68756fb868172943e6b58de1dea37f59b172f",
+      "syntheticOnly": true,
+      "aiResultsPreset": true
+    }
+  ],
+  "rendererErrors": [],
+  "blockedNetworkRequests": [],
+  "executableVersion": "0.14.16",
+  "fixture": {
+    "records": 6,
+    "groups": 4,
+    "chats": 1,
+    "cloudEnabled": false,
+    "globalInputEnabled": false,
+    "networkDisabled": true,
+    "sourcePage": "Original synthetic reading page; not an external website",
+    "audio": "Synthetic local sine waveform; no real microphone input"
+  }
+}

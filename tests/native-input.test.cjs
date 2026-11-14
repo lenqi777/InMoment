@@ -21,11 +21,17 @@ function compileHarness(t) {
   const speechVersion = fs.readdirSync(speechRoot).find(name => name.startsWith('v4.0_'));
   assert.ok(speechVersion, 'The .NET Framework System.Speech reference is unavailable');
   const binary = path.join(temp, 'InMoment.Native.InputTest.exe');
+  const automationReferences = ['UIAutomationClient', 'UIAutomationTypes', 'WindowsBase'].map(name => {
+    const directory = path.join(windows, 'Microsoft.NET', 'assembly', 'GAC_MSIL', name);
+    const version = fs.readdirSync(directory).find(value => value.startsWith('v4.0_'));
+    return `/reference:${path.join(directory, version, name + '.dll')}`;
+  });
   const compile = spawnSync(compiler, [
     '/nologo', '/target:exe', '/platform:x64', '/define:INMOMENT_NATIVE_INPUT_TEST',
     '/reference:System.dll', '/reference:System.Core.dll', '/reference:System.Drawing.dll',
     '/reference:System.Windows.Forms.dll', '/reference:System.Web.Extensions.dll',
     `/reference:${path.join(speechRoot, speechVersion, 'System.Speech.dll')}`,
+    ...automationReferences,
     `/out:${binary}`, path.join(root, 'native', 'InMoment.Native.cs'),
   ], { encoding: 'utf8', windowsHide: true, timeout: 15000 });
   assert.ifError(compile.error);
@@ -65,7 +71,7 @@ test('native hook handles short press, long hold, drag and configuration on its 
   const run = spawnSync('powershell.exe', ['-NoProfile', '-Command', launch], { encoding: 'utf8', windowsHide: true, timeout: 20000 });
   assert.ifError(run.error);
   const result = JSON.parse(fs.readFileSync(output, 'utf8').replace(/^\uFEFF/, '').trim());
-  assert.equal(run.status, 0, result.error || 'The isolated native input integration failed');
+  assert.equal(run.status, 0, `${result.error || 'The isolated native input integration failed'}\n${JSON.stringify(result.diagnostics)}`);
   assert.equal(result.ok, true);
   assert.equal(result.scope, 'own-window-synthetic-input-only');
   assert.equal(result.screenshotTest, 'not-run');

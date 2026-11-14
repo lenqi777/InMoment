@@ -1,0 +1,34 @@
+.chat-has-question-navigation,.chat-has-question-navigation .chat-messages { overflow-anchor:none; }
+.chat-has-question-navigation.chat-has-questions .chat-messages { padding-left:max(40px,calc((100% - 760px)/2)); }
+.chat-floating .chat-has-question-navigation.chat-has-questions .chat-messages { padding-left:40px; }
+.chat-question-navigation { position:absolute; left:0; width:36px; translate:0 -50%; z-index:3; display:flex; flex-direction:column; overflow:hidden; pointer-events:auto; }
+.chat-question-ticks { display:flex; flex-direction:column; min-height:0; overflow-x:hidden; overflow-y:auto; padding:4px 0; scrollbar-width:none; overscroll-behavior:contain; overflow-anchor:none; }
+.chat-question-ticks::-webkit-scrollbar { display:none; }
+.chat-question-tick {
+  --tick-width:6px;
+  --tick-color:color-mix(in srgb,var(--color-muted) 72%,var(--color-surface));
+  display:flex; align-items:center; flex-shrink:0; width:100%; height:11px; border:0; padding:0 0 0 8px;
+  background-color:transparent; scale:none; cursor:pointer;
+}
+.chat-question-tick>span {
+  display:block; width:var(--tick-width); height:2px; border-radius:2px; background:var(--tick-color);
+  transition:width var(--motion-fast) ease,background-color var(--motion-fast) ease;
+}
+.chat-question-tick:where(.active) { --tick-width:14px; --tick-color:var(--color-muted); }
+.chat-question-tick:where(:focus-visible) { --tick-width:26px; --tick-color:var(--color-text); }
+.chat-question-navigation button.chat-question-tick:focus-visible { background-position:8px bottom; background-size:12px 1px; }
+@media (any-hover:hover) {
+  /* The visible mark changes width inside a fixed hit target. */
+  :where(.chat-question-ticks:has(> .chat-question-tick:hover)) > .chat-question-tick { --tick-width:6px; }
+  .chat-question-tick:where(:has(+ * + * + .chat-question-tick:hover)),
+  :where(.chat-question-tick:hover + * + *) + .chat-question-tick { --tick-width:10px; }
+  .chat-question-tick:where(:has(+ * + .chat-question-tick:hover)),
+  :where(.chat-question-tick:hover + *) + .chat-question-tick { --tick-width:14px; }
+  .chat-question-tick:where(:has(+ .chat-question-tick:hover)),
+  :where(.chat-question-tick:hover) + .chat-question-tick { --tick-width:20px; }
+  .chat-question-tick:where(:hover) { --tick-width:26px; --tick-color:var(--color-text); }
+}
+@media (any-hover:none) and (pointer:coarse) { .chat-question-tick { height:44px; } }
+.chat-question-preview { position:fixed; z-index:25; max-width:min(240px,calc(100vw - 44px)); padding:8px 12px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); color:var(--color-text); box-shadow:var(--shadow-popover); font-size:12px; line-height:1.7; overflow-wrap:anywhere; pointer-events:none; }
+.chat-bottom-button { position:absolute; z-index:4; display:flex; width:32px; min-width:32px; height:32px; padding:0; align-items:center; justify-content:center; color:var(--color-muted); }
+@media(prefers-reduced-motion:reduce) { .chat-question-tick>span { transition:none; } }

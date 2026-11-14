@@ -133,4 +133,4 @@ class BatchOrganizer {
     return { runId, items, grouping, completed: items.filter(item => !['not-processed'].includes(item.status)).length, total: snapshot.length, cancelled: Boolean(signal?.aborted), usage, limits: { ...this.limits }, inputBytes: { text: textBytes, image: imageBytes } };
   }
 }
-module.exports = { BatchOrganizer, BATCH_LIMITS, validateBatch };
+module.exports = { BatchOrganizer, BATCH_LIMITS, validateBatch, candidateTopics };

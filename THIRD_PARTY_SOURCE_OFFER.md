@@ -1,6 +1,6 @@
 # Third-party source locations and library replacement
 
-Prepared for InMoment 0.10.0 on 2026-10-17. This file identifies upstream source, the source collection prepared alongside the portable package, and how the LGPL-covered Windows libraries can be replaced. It does not make a three-year written source offer or claim that all legal obligations have been independently certified. The original license texts govern.
+Updated for InMoment 0.14.31. [GitHub Releases](https://github.com/lenqi777/InMoment/releases) lists published portable packages, source collections, notices, and checksums. This file maps the libraries to their upstream sources and documents replacement steps.
 
 ## What the application includes
 
@@ -32,18 +32,26 @@ The [current binary match record](docs/third-party/sharp-0.35.5/LIBVIPS-BINARY-M
 
 The current LGPL components are libvips 8.18.7, fribidi 1.0.17, glib 2.90.0, libexif 0.6.26, libheif 1.23.5, librsvg 2.63.2, pango 1.58.2 and proxy-libintl 0.5. Their official source archives and fixed build-source archives are prepared in the third-party source collection under `sharp-0.35.5/`. That directory's `SOURCE-MANIFEST.json`, `LGPL-SOURCE-DOWNLOADS.json` and `SHA256SUMS.txt` record actual files, source URLs, recipe-hash matches and status; `REBUILD.md` explains the upstream entry points. Locked Rust source archives for librsvg and the Cairo source are included with their own recorded hashes.
 
-The separate `sharp-0.34.5/` collection preserves earlier libvips 8.17.3 source support for the retained original local packages. It does not describe the current rebuilt package. The application version remains 0.10.0 during first-publication preparation; build hashes and the runtime dependency manifest distinguish the dependency-updated package from the original local 0.10.0 package.
+The separate `sharp-0.34.5/` collection preserves earlier libvips 8.17.3 source support for the retained original local packages. InMoment 0.14.31 uses the `sharp-0.35.5/` collection prepared on 2026-10-17. Build hashes and the runtime dependency manifest identify the exact dependencies in each current or historical package, including the original local 0.10.0 package.
 
-The actual [third-party source collection](https://github.com/lenqi777/InMoment/releases/download/v0.10.0/InMoment-third-party-sources.zip) accompanies the [0.10.0 binary Release](https://github.com/lenqi777/InMoment/releases/tag/v0.10.0), together with `InMoment-third-party-notices.zip` and `SHA256SUMS-current.txt`. The [historical binary archive](https://github.com/lenqi777/InMoment/releases/tag/history-binaries) also supplies the source collection and notices with `SHA256SUMS-history.txt`; use its `sharp-0.34.5/` material for the retained historical binaries. A list of external URLs by itself must not be presented as delivery of a source archive. The MXE branch snapshot documents the branch retrieved now; it is not proof of a bit-for-bit historical compiler environment. Rebuilding and replacing the DLLs has not been tested in this preparation.
+Publishers should provide that actual source collection alongside the binary Release and link its exact asset from the Release notes. A list of external URLs by itself must not be presented as delivery of a source archive. The MXE branch snapshot documents the branch retrieved now; it is not proof of a bit-for-bit historical compiler environment. Rebuilding and replacing the DLLs has not been tested in this preparation.
 
 ## Replacing the Windows libraries
 
 1. Close InMoment and its helper processes. Work on a copy of the portable application directory and preserve the original DLLs for rollback.
-2. Obtain or build Windows x64 replacements using the source and upstream patches above. Preserve the libvips ABI expected by the particular package and the required dependent exports. For an incompatible C++ or native addon ABI change, rebuild the matching wrapper/addon using sharp's upstream rules.
+2. Obtain or build Windows x64 replacements using the source and upstream patches above. For 0.14.31, preserve libvips 8.18 ABI expectations and the required dependent exports. For an incompatible C++ or native addon ABI change, rebuild the matching wrapper/addon using sharp's upstream rules.
 3. Replace the corresponding files in the module's `lib` directory. There is no InMoment-specific checksum gate, signature check or encrypted application archive preventing a local replacement of these files.
 4. Verify the application with a separate test-data directory. A binary compatibility failure may prevent image processing or startup; restore the original files if needed. This preparation has not validated a custom replacement build.
 
 The upstream sharp documentation says a globally installed libvips is unsupported on Windows; this procedure concerns the actual local DLLs used by the portable application. See [sharp installation guidance](https://sharp.pixelplumbing.com/install/). InMoment adds no restriction on modifying covered libraries or reverse engineering the library combination for debugging such modifications under the applicable LGPL terms. Keep the relevant copyright, license and source notices with a redistributed replacement.
+
+## Offline OCR and OpenCV's FFmpeg library
+
+The OCR runtime retains the original `opencv-python-headless` 5.0.0.93 wheel and its `LICENSE-3RD-PARTY.txt`. Its `cv2/opencv_videoio_ffmpeg500_64.dll` uses LGPL 2.1 FFmpeg code. The bundled DLL's SHA-256 (`7aabff029d1fa47cf56ede4dbbe05dc62da3208f07cd16471d4c966a33f9aa31`) matches the [upstream DLL and recipe revision](https://github.com/opencv/opencv_3rdparty/tree/06dc20cad65dc7fcf784f70c95d46750520889a7/ffmpeg). The corresponding-source archive `InMoment-0.14.31-ocr-corresponding-source.zip` includes the complete OpenCV build source at `a0a660fcb1e58a295e6caa6aee64ed4d369b0181`, FFmpeg 7.1 and its configured dependencies, original recipes, notices, and relinking and replacement steps. Close InMoment and the OCR helper before replacing the local plugin DLL with an ABI-compatible build, and test against a separate data directory. Artifact identity was checked against upstream; a byte-identical rebuild has not been tested. This section supersedes the preparation status printed inside the unchanged portable ZIP.
+
+The root `ffmpeg.dll` is a separate shared library shipped by [Electron 44.7.2](https://github.com/electron/electron/releases/tag/v44.7.2). The portable package retains Electron's `LICENSES.chromium.html` and `ELECTRON-LICENSE.txt`. The archive `InMoment-0.14.31-electron-ffmpeg-source.zip` includes the fixed Chromium FFmpeg source, Electron's FFmpeg patch, shared library build settings, and replacement guidance.
+
+The OCR DLL is separate from the standalone `ffmpeg.exe` and `ffprobe.exe` commands used for local GPT and DeepSeek MP4 analysis. Users provide those commands separately for that route.
 
 ## Other source and notice details
 

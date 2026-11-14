@@ -1,0 +1,165 @@
+.note-image-editor {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.note-image-editor [hidden] { display: none; }
+.note-image-editor-toolbar,
+.note-image-editor-footer,
+.note-image-editor-adjustments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+}
+
+.note-image-editor-toolbar,
+.note-image-editor-adjustments {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.note-image-editor-toolbar {
+  max-height: 36vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.note-image-editor-tools,
+.note-image-editor-palette {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.note-image-editor-tools > .icon-button { display: inline-grid; place-items: center; }
+.note-image-editor-tools > button:disabled { opacity: .5; cursor: not-allowed; }
+
+.note-image-editor-swatch {
+  --button-tint: var(--note-mark-color);
+  justify-content: center;
+}
+
+.note-image-editor-swatch.is-neutral { --button-tint: var(--color-button-neutral); }
+.note-image-editor-swatch span {
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--note-mark-color);
+}
+
+.note-image-editor-swatch[aria-pressed=true] span {
+  outline: 1px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.note-image-editor-size,
+.note-image-editor-angle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.note-image-editor-size select {
+  min-height: var(--control-icon);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font: inherit;
+  background-color: var(--color-surface);
+}
+
+.note-image-editor-angle input {
+  width: clamp(76px, 18vw, 160px);
+  accent-color: var(--color-accent);
+}
+
+.note-image-editor-measure {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-image-editor-angle .note-image-editor-measure { min-width: 4ch; text-align: end; }
+
+.note-image-editor-viewport {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 72px;
+  padding: var(--space-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--color-surface-subtle);
+}
+
+.note-image-editor-page {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: auto;
+}
+
+.note-image-editor-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--color-surface);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.note-image-editor-canvas:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.note-image-editor[data-tool=text] .note-image-editor-canvas { cursor: text; }
+.note-image-editor[data-tool=adjust] .note-image-editor-canvas { cursor: grab; }
+.note-image-editor.is-panning .note-image-editor-canvas { cursor: grabbing; }
+
+.note-image-editor-crop {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed white;
+  outline: 1px solid var(--color-accent);
+  box-shadow: 0 0 0 100vmax rgb(23 26 29 / 32%);
+  pointer-events: none;
+}
+
+.note-image-editor[data-tool=crop] .note-image-editor-page { clip-path: inset(-3px); }
+
+.note-image-editor-text {
+  position: absolute;
+  box-sizing: border-box;
+  width: 248px;
+  min-height: 32px;
+  padding: var(--space-1);
+  resize: both;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-control);
+  font: inherit;
+  background: var(--color-surface);
+}
+
+.note-image-editor-footer { justify-content: space-between; border-top: 1px solid var(--color-border); }
+.note-image-editor-footer .note-image-editor-tools { margin-inline-start: auto; justify-content: flex-end; }
+.note-image-editor-status { margin: 0; color: var(--color-muted); font-size: 13px; }
+.note-image-editor-status:empty { display: none; }
+.note-image-editor-status.has-error { color: var(--color-danger); }
+
+@media (pointer: coarse) {
+  .note-image-editor-toolbar .icon-button { min-width: var(--control-touch); height: var(--control-touch); }
+}

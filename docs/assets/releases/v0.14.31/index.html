@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InMoment 0.14.31 · 界面总览</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 40px auto; max-width: 1450px; padding: 0 24px; background: #f5f7f3; color: #20352b; font: 16px/1.65 "Microsoft YaHei UI", sans-serif; }
+    h1 { margin-bottom: 8px; font-size: 32px; line-height: 1.3; }
+    p { color: #465c4e; }
+    a { color: #256d49; }
+    .links { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0 32px; }
+    .gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 25px; align-items: start; }
+    section { padding: 18px; background: #fff; border: 1px solid #dbe4dc; border-radius: 14px; }
+    h2 { font-size: 18px; margin: 0 0 13px; }
+    img { display: block; width: 100%; height: auto; border: 1px solid #dbe4dc; border-radius: 6px; }
+    @media (max-width: 800px) { .gallery { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>InMoment 0.14.31 · 界面总览</h1>
+  <p>新版笔记、聊天与偏好设置。五张图均来自应用窗口；笔记与附件使用合成资料，聊天回复为预置演示。</p>
+  <nav class="links" aria-label="核验资料">
+    <a href="PROVENANCE.json">素材来源与 SHA-256</a>
+    <a href="VISUAL_REVIEW.md">画面复查记录</a>
+  </nav>
+  <div class="gallery">
+    <section><h2>01 · 全部笔记与最近编辑</h2><a href="home.png"><img src="home.png" alt="全部笔记、分组列和最近编辑"></a></section>
+    <section><h2>02 · 笔记正文与附件</h2><a href="record-detail.png"><img src="record-detail.png" alt="笔记正文、内联图和文本附件"></a></section>
+    <section><h2>03 · 聊天导航与混合附件</h2><a href="chat.png"><img src="chat.png" alt="预置对话、提问导航、公式与混合附件"></a></section>
+    <section><h2>04 · AI 服务与授权设置</h2><a href="settings.png"><img src="settings.png" alt="AI 服务提供方、空密钥输入及授权开关"></a></section>
+    <section><h2>05 · 背景信息</h2><a href="record-background.png"><img src="record-background.png" alt="笔记录音、来源和示例截图"></a></section>
+  </div>
+</body>
+</html>

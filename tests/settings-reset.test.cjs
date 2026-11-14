@@ -5,8 +5,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { Settings, DEFAULTS } = require('../src/main/settings.cjs');
+const { DEFAULT_REGION_SHORTCUT } = require('../src/main/region-shortcut.cjs');
 
 const encryptedFixture = 'opaque-ciphertext-fixture-not-a-real-key';
+function resetValueWithKey() {
+  const value = structuredClone(DEFAULTS); value.apiKeyEncrypted = encryptedFixture; value.aiProfiles.deepseek.apiKeyEncrypted = encryptedFixture; return value;
+}
 
 function fixture(t, { existing = true } = {}) {
   const dir = fs.mkdtempSync(path.join(__dirname, '.tmp-settings-reset-'));
@@ -24,10 +28,35 @@ function fixture(t, { existing = true } = {}) {
   return { dir, config, settings, protectedStorage, storageCalls };
 }
 
-test('reset restores every default while preserving only the existing encrypted key blob', t => {
+test('screenshot visibility preference is local, defaults hidden and persists without AI consent',t=>{
+  const f=fixture(t,{existing:false});assert.equal(f.settings.public().screenshotKeepChatVisible,false);
+  f.settings.save({screenshotKeepChatVisible:true});assert.equal(new Settings(f.dir,f.protectedStorage).public().screenshotKeepChatVisible,true);assert.deepEqual(f.storageCalls,[]);
+  assert.throws(()=>f.settings.save({screenshotKeepChatVisible:'false'}),/截图窗口选项/u);assert.equal(f.settings.public().screenshotKeepChatVisible,true);
+  f.settings.resetToDefaults();assert.equal(f.settings.public().screenshotKeepChatVisible,false);
+});
+
+test('screenshot recording shortcuts migrate, validate, and restore the default independently of long-press keys', t => {
+  const f = fixture(t, { existing: false });
+  const legacy = '{"keyboardTrigger":"F8"}\n';
+  fs.writeFileSync(f.settings.path, legacy);
+  const loaded = new Settings(f.dir, f.protectedStorage);
+  assert.equal(loaded.public().regionScreenshotShortcut, DEFAULT_REGION_SHORTCUT);
+  assert.equal(fs.readFileSync(f.settings.path, 'utf8'), legacy);
+  assert.equal(loaded.save({ regionScreenshotShortcut: ' shift ＋ ctrl + 7 ' }).regionScreenshotShortcut, 'Ctrl+Shift+7');
+  assert.equal(loaded.public().keyboardTrigger, 'F8');
+  assert.equal(new Settings(f.dir, f.protectedStorage).public().regionScreenshotShortcut, 'Ctrl+Shift+7');
+  for (const shortcut of ['F9', 'Ctrl+X', 'Alt+F4', 'Ctrl+ctrl+F8', 'Ctrl+Shift+F13', '', null, {}, 'Ctrl+Shift+F9\nAlt+F2']) {
+    assert.throws(() => loaded.save({ regionScreenshotShortcut: shortcut }), { code: 'REGION_SHORTCUT' });
+    assert.equal(loaded.public().regionScreenshotShortcut, 'Ctrl+Shift+7');
+  }
+  assert.equal(loaded.resetToDefaults().regionScreenshotShortcut, DEFAULT_REGION_SHORTCUT);
+  assert.deepEqual(f.storageCalls, []);
+});
+
+test('reset restores every default while preserving the existing encrypted key in its DeepSeek profile and legacy alias', t => {
   const fx = fixture(t);
   const result = fx.settings.resetToDefaults();
-  assert.deepEqual(fx.settings.value, { ...structuredClone(DEFAULTS), apiKeyEncrypted: encryptedFixture });
+  assert.deepEqual(fx.settings.value, resetValueWithKey());
   assert.equal(result.cloudEnabled, false);
   assert.equal(result.autoTitleEnabled, false);
   assert.equal(result.autoTitleConsentVersion, 0);
@@ -44,7 +73,7 @@ test('reset persists defaults across restart without requiring available OS key 
   const reloaded = new Settings(fx.dir, fx.protectedStorage);
   assert.deepEqual(reloaded.public(), expected);
   assert.equal(reloaded.value.apiKeyEncrypted, encryptedFixture);
-  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(fx.dir, 'settings.json'), 'utf8')), { ...structuredClone(DEFAULTS), apiKeyEncrypted: encryptedFixture });
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(fx.dir, 'settings.json'), 'utf8')), resetValueWithKey());
   assert.deepEqual(fx.storageCalls, []);
 });
 

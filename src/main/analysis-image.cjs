@@ -1,10 +1,11 @@
 'use strict';
 const fs = require('node:fs');
+const { preferredScreenshot } = require('./record-background.cjs');
 
 const MAX_IMAGE_BYTES = 32 * 1024 * 1024;
 function selectedScreenshot(store, record) {
   if (record?.status !== 'saved' || !record.screenshots?.length) throw new Error('这条已保存记录没有可发送的截图。');
-  const file = store.safePath(record.screenshots[0].path);
+  const file = store.safePath(preferredScreenshot(record).path);
   const size = fs.statSync(file).size;
   if (size < 24 || size > MAX_IMAGE_BYTES) throw new Error('截图文件无效或超过 32 MiB，本次没有发送。');
   const data = fs.readFileSync(file);

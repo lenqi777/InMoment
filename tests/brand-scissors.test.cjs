@@ -1,0 +1,4 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');const {createCutCycle}=require('../src/shared/brand-scissors.js');
+test('scissors cut once per pointer visit and restart only after leaving',()=>{let cuts=0,cancelled=0;const cycle=createCutCycle({animate:()=>cuts++,cancel:()=>cancelled++});cycle.enter();cycle.enter();cycle.focus();assert.equal(cuts,1);cycle.leave();assert.equal(cancelled,1);cycle.enter();assert.equal(cuts,2);cycle.reset();assert.equal(cancelled,2);});
+test('keyboard focus is supported and reduced or disabled controls remain still',()=>{let cuts=0,reduced=false,disabled=false;const cycle=createCutCycle({animate:()=>cuts++,cancel(){},reduced:()=>reduced,disabled:()=>disabled});cycle.focus();assert.equal(cuts,1);reduced=true;cycle.enter();assert.equal(cuts,1);cycle.leave();reduced=false;disabled=true;cycle.enter();assert.equal(cuts,1);cycle.leave();disabled=false;cycle.enter();assert.equal(cuts,2);});

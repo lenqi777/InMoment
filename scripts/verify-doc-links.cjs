@@ -4,7 +4,8 @@ const root = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const files = [];
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    if (['node_modules', '.git', '.local', 'release', 'release-preparation', 'dist', 'build', 'test-results', 'third-party', 'LICENSES.chromium.html'].includes(entry.name)) continue;
+    // Installed dependency docs can link to their upstream source tree.
+    if (['node_modules', 'offline-ocr', '.git', '.local', 'release', 'release-preparation', 'dist', 'build', 'test-results', 'third-party', 'LICENSES.chromium.html'].includes(entry.name)) continue;
     const filename = path.join(directory, entry.name);
     if (entry.isDirectory()) walk(filename); else if (/\.(?:md|html)$/u.test(entry.name)) files.push(filename);
   }

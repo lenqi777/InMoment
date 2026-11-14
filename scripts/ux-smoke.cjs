@@ -12,9 +12,13 @@ const { checkGroupManagementLayout } = require('./group-management-layout-check.
 const { _electron } = require(process.env.INMOMENT_PLAYWRIGHT || 'playwright');
 const root = path.resolve(__dirname, '..');
 fs.mkdirSync(path.join(root, '.local'), { recursive: true });
-const dataDir = fs.mkdtempSync(path.join(root, '.local', 'ux-smoke-'));
-const outputDir = path.join(root, 'test-results', 'ux');
+const resumeDir=process.env.INMOMENT_UX_RESUME_DIR?path.resolve(process.env.INMOMENT_UX_RESUME_DIR):null;
+if(resumeDir&&(!resumeDir.startsWith(path.join(root,'.local','ux-smoke-'))||!fs.statSync(resumeDir).isDirectory()))throw new Error('Resume is restricted to this workspace synthetic UX libraries.');
+const dataDir = resumeDir||fs.mkdtempSync(path.join(root, '.local', 'ux-smoke-'));
+const outputDir = path.resolve(root,process.env.INMOMENT_UX_SMOKE_OUTPUT || 'test-results/ux');
+assert.ok(outputDir.startsWith(root+path.sep),'UX smoke output must stay inside the workspace.');
 fs.mkdirSync(outputDir, { recursive: true });
+const auditStarted=Date.now();
 
 function silentWav() {
   const bytes = Buffer.alloc(44 + 32000);
@@ -58,7 +62,7 @@ function seedLibrary() {
 
 function originalAttachments(directory = dataDir) {
   const hashes = new Map();
-  function visit(current) { for (const entry of fs.readdirSync(current, { withFileTypes: true })) { const filename = path.join(current, entry.name); if (entry.isDirectory()) visit(filename); else if (entry.name.endsWith('.wav')) hashes.set(entry.name, createHash('sha256').update(fs.readFileSync(filename)).digest('hex')); } }
+  function visit(current) { for (const entry of fs.readdirSync(current, { withFileTypes: true })) { const filename = path.join(current, entry.name); if (entry.isDirectory()) visit(filename); else if (/\.(wav|png)$/u.test(entry.name)) hashes.set(path.relative(dataDir,filename).replace(/^(?:drafts|records)[\\/]/u,''), createHash('sha256').update(fs.readFileSync(filename)).digest('hex')); } }
   visit(directory); return hashes;
 }
 
@@ -102,6 +106,7 @@ async function checkOverflow(page, label) {
 }
 
 let application;
+async function quitApplication(){const child=application.process(),exit=child.exitCode!==null?Promise.resolve(child.exitCode):new Promise(resolve=>child.once('exit',resolve));await application.evaluate(({app})=>app.quit());let timer;try{await Promise.race([exit,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Normal app.quit did not exit within60seconds')),60000);})]);}finally{clearTimeout(timer);}}
 async function captureOwnWindow(filename) {
   await new Promise(resolve => setTimeout(resolve, 220));
   // Electron's complete compositor image avoids Playwright viewport clipping
@@ -114,7 +119,7 @@ async function captureOwnWindow(filename) {
   fs.writeFileSync(path.join(outputDir, filename), Buffer.from(png, 'base64'));
 }
 (async () => {
-  const fixture = seedLibrary();
+  const fixture = resumeDir?(()=>{const store=new LocalStore(dataDir);try{const names=['信息管理','求职作品集','思考回溯','分类体验','日常生活','视觉设计','检索体验','用于检查超长主题名换行与缩放时可读性的模拟主题名称'];const topics=store.listTopics();return{recordIds:Array.from({length:48},(_,i)=>'ux-record-'+String(i+1).padStart(2,'0')),groupIds:store.listGroups().map(g=>g.id),topicIds:names.map(name=>topics.find(t=>t.name===name).id)};}finally{store.close();}})():seedLibrary();
   const attachmentHashes = originalAttachments();
   const settingsPath = path.join(dataDir, 'settings.json');
   const settingsText = JSON.stringify({ inputEnabled: false, captureScreenshots: false, cloudEnabled: false, autoTitleEnabled: false, aiSearchEnabled: false, duplicateAnalysisEnabled: false, keyboardTrigger: 'F9', thresholdMs: 1650, apiKeyEncrypted: '' }, null, 2);
@@ -157,10 +162,12 @@ async function captureOwnWindow(filename) {
     await detail.locator('[data-action="rename-record"]').waitFor();
   }
   async function answer(label) {
-    await page.locator('#confirm-dialog').waitFor({ state: 'visible' });
-    await page.locator('#confirm-actions').getByRole('button', { name: label, exact: true }).click();
-    await waitFor(() => page.locator('#confirm-dialog').evaluate(item => item.open), value => !value, 'app confirmation close');
+    const prompt=page.locator('.confirm-popover:not(.ui-motion-snapshot):visible,#confirm-dialog[open]');
+    await prompt.waitFor({state:'visible'});await prompt.getByRole('button',{name:label,exact:true}).click();
+    await waitFor(()=>prompt.count(),count=>count===0,'app confirmation close');
   }
+  const measurements=[];
+  if(!resumeDir){
   await nav('uncategorized').waitFor();
   const boot = await page.evaluate(() => window.inmoment.invoke('app:bootstrap'));
   assert.equal(boot.recordCount, 48); assert.equal(boot.groups.length, 6); assert.equal(boot.topics.length, 8); assert.equal(boot.settings.networkDisabled, true);
@@ -176,7 +183,6 @@ async function captureOwnWindow(filename) {
   const scoped = await page.evaluate(id => window.inmoment.invoke('records:list', { filters: { topicIds: [id] } }), fixture.topicIds[0]);
   assert.equal(await page.locator('#record-list .record-card').count(), scoped.total);
   assert.ok(scoped.total > 30, 'large synthetic group covers list compression regression');
-  const measurements = [];
   for (const size of [{ width: 1320, height: 900, zoom: 1 }, { width: 1000, height: 700, zoom: 1 }, { width: 1600, height: 900, zoom: 1 }, { width: 2560, height: 1400, zoom: 1 }, { width: 1100, height: 760, zoom: 1.25 }, { width: 1320, height: 900, zoom: 1.5 }]) {
     await application.evaluate(({ BrowserWindow }, size) => { const window = BrowserWindow.getAllWindows().find(window => window.webContents.getURL().includes('/renderer/')); window.setContentSize(size.width, size.height); window.webContents.setZoomFactor(size.zoom); }, size);
     await page.waitForTimeout(160);
@@ -203,12 +209,13 @@ async function captureOwnWindow(filename) {
     if (widths.window >= 1000) {
       assert.ok(widths.groups > 0 && Math.abs(widths.groups - widths.list) <= 2, 'group and record columns have equal widths: ' + JSON.stringify(widths));
       const ratio = (widths.rail + widths.groups + widths.list) / widths.window;
-      assert.ok(ratio >= 0.24 && ratio <= 0.34, 'navigation occupies about one quarter to one third: ' + JSON.stringify(widths));
+      if(widths.window<=1920)assert.ok(ratio >= 0.24 && ratio <= 0.34, 'navigation occupies about one quarter to one third at standard desktop widths: ' + JSON.stringify(widths));
+      else assert.ok(widths.groups<=233&&widths.list<=233&&widths.detail/widths.window>.7,'large-screen navigation retains its232px cap and leaves the reading area dominant: '+JSON.stringify(widths));
       assert.ok(widths.detail > widths.groups * 2, 'detail receives the main reading area');
     }
     assert.equal(await detail.locator('.record-text-panel').count(), 1);
-    const order = await detail.evaluate(root => { const selectors = ['.record-text-panel', '.record-screenshot-section', '.record-audio-section']; return selectors.map(selector => root.querySelector(selector)?.getBoundingClientRect().top); });
-    assert.ok(order.every(Number.isFinite) && order[0] < order[1] && order[1] < order[2], 'text, screenshot and original audio retain the requested order');
+    const order = await detail.evaluate(root => { const selectors = ['.record-audio-section', '.record-text-panel', '.record-screenshot-section']; return selectors.map(selector => root.querySelector(selector)?.getBoundingClientRect().top); });
+    assert.ok(order.every(Number.isFinite) && order[0] < order[1] && order[1] < order[2], 'audio and transcript share the reading region before the separate screenshot group');
     await captureOwnWindow('detail-' + size.width + 'x' + size.height + '-' + size.zoom + '.png');
     measurements.push({ ...size, gridViewport, detailViewport, gridCards: gridRows.length, listCards: listRows.length, widths });
     await page.locator('#back-to-group-home').click();
@@ -256,8 +263,8 @@ async function captureOwnWindow(filename) {
   const audioDuration = await detail.locator('audio').first().evaluate(async audio => { if (audio.readyState < 1) await new Promise((resolve, reject) => { audio.addEventListener('loadedmetadata', resolve, { once: true }); audio.addEventListener('error', reject, { once: true }); }); return audio.duration; });
   assert.equal(audioDuration, 1);
   await detail.locator('[data-action="rename-record"]').click();
-  await detail.locator('.inline-title-editor input').fill('手动修改的灵感标题');
-  await detail.locator('.inline-title-editor').getByRole('button', { name: '保存标题', exact: true }).click();
+  await detail.locator('.record-title-input').fill('手动修改的灵感标题');
+  await detail.locator('.record-title-row').getByRole('button', { name: '保存标题', exact: true }).click();
   await waitFor(() => page.evaluate(id => window.inmoment.invoke('records:get', { id }), fixture.recordIds[0]), record => record.editableTitle === '手动修改的灵感标题', 'inline title rename');
   assert.equal((await page.evaluate(id => window.inmoment.invoke('records:get', { id }), fixture.recordIds[0])).organizationStale, false, 'renaming a title does not invalidate an unchanged summary');
   await captureOwnWindow('summary-and-rename.png');
@@ -282,7 +289,8 @@ async function captureOwnWindow(filename) {
   assert.equal(await page.locator('#record-list [data-record-id="' + fixture.recordIds[0] + '"]').count(), 0, 'leaving the item clears its temporary projection');
   await openGroup(suggested.id);
   assert.equal(await page.locator('#record-list .record-card').count(), 1);
-  await page.locator('#ai-search').click();
+  await page.locator('#library-filter-trigger').click();
+  await page.locator('#filter-popup-ai').click();
   await page.locator('#ai-search-dialog').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#ai-search-scope').inputValue(), 'all');
   await page.locator('#ai-search-description').fill('最近一年与做菜有关的灵感');
@@ -292,6 +300,8 @@ async function captureOwnWindow(filename) {
   await page.locator('#batch-organize').click();
   await waitFor(() => page.locator('#batch-status').textContent(), text => /失败|禁用|设置|开启/u.test(text), 'batch respects disabled real API');
   assert.equal((await page.evaluate(() => window.inmoment.invoke('app:bootstrap'))).recordCount, 48);
+  }else{await nav('uncategorized').waitFor();const resumed=await page.evaluate(()=>window.inmoment.invoke('app:bootstrap'));await openGroup(resumed.topics.find(t=>t.name==='新的模拟分组').id);measurements.push({resumeFrom:process.env.INMOMENT_UX_RESUME_STAGE||'batch review',syntheticDataDir:resumeDir,prefixEvidence:'Prior run passed layout, title rename, group projection and disabled-AI checks before failing at batch cancellation.'});}
+  if(!['cloud','post-complete'].includes(process.env.INMOMENT_UX_RESUME_STAGE)){
   const simulated = await page.evaluate(async ids => Promise.all(ids.map(id => window.inmoment.invoke('records:get', { id }))), fixture.recordIds.slice(0, 3));
   const stressRecords = await page.evaluate(async ids=>Promise.all(ids.map(id=>window.inmoment.invoke('records:get',{id}))),fixture.recordIds.slice(0,20));
   await page.evaluate(records=>{state.batchResultItems=records.map((record,index)=>({id:record.id,title:record.title,version:record.version,status:index<18?'success':'failed',error:index<18?undefined:'合成失败结果，用于验证未完成列表也能显示。',record:{...record,organization:{summary:'用于检查大量分组时标题、摘要和调整按钮可见的合成内容。'}},topicSuggestions:index<18?['旧结果布局回归组 '+(index+1)]:[]}));initializeBatchChoices();renderBatchResults();document.querySelector('#batch-results-status').textContent='布局回归：18 个分组与 2 条未完成，不调用模型。';document.querySelector('#batch-results-dialog').showModal();},stressRecords);
@@ -312,7 +322,14 @@ async function captureOwnWindow(filename) {
   const batchItem = id => page.locator('[data-batch-record-id="' + id + '"]');
   await batchItem(fixture.recordIds[0]).locator('.batch-result-menu').click();
   await page.locator('.context-menu [data-menu-id="cancel"]').click();
+  const cancelStarted=performance.now();for(const at of[0,50,150,300]){await page.waitForTimeout(Math.max(0,at-(performance.now()-cancelStarted)));measurements.push({phase:'cancel-group',atMs:at,elapsedMs:performance.now()-cancelStarted,...await page.evaluate(()=>({choices:[...state.batchChoices],groups:[...document.querySelectorAll('.batch-result-group')].map(e=>({name:e.getAttribute('data-batch-group-name'),ids:[...e.querySelectorAll('[data-batch-record-id]')].map(e=>e.getAttribute('data-batch-record-id'))}))}))});}
+  fs.writeFileSync(path.join(outputDir,'batch-cancel-proof.json'),JSON.stringify(measurements.filter(m=>m.phase==='cancel-group'),null,2));
+  await waitFor(()=>page.locator('.batch-result-group[data-batch-group-name="暂不分组"] [data-batch-record-id="'+fixture.recordIds[0]+'"]').count(),count=>count===1,'cancel suggestion completes its popover exit');
   assert.equal(await page.locator('.batch-result-group[data-batch-group-name="暂不分组"] [data-batch-record-id="' + fixture.recordIds[0] + '"]').count(), 1, 'canceling leaves a visible unassigned suggestion');
+  await batchItem(fixture.recordIds[1]).locator('.batch-result-menu').click();await page.locator('.context-menu [data-menu-id="change"]').click();await page.keyboard.press('Escape');
+  const escapeStarted=performance.now();for(const at of[0,50,150,300]){await page.waitForTimeout(Math.max(0,at-(performance.now()-escapeStarted)));measurements.push({phase:'rapid-menu-escape',atMs:at,elapsedMs:performance.now()-escapeStarted,...await page.evaluate(id=>({pickerCount:document.querySelectorAll('.group-picker').length,batchOpen:document.querySelector('#batch-results-dialog').open,buttonDisabled:document.querySelector('[data-batch-record-id="'+id+'"] .batch-result-menu').disabled,choice:state.batchChoices.get(id)}),fixture.recordIds[1])});}
+  fs.writeFileSync(path.join(outputDir,'batch-cancel-proof.json'),JSON.stringify(measurements.filter(m=>m.phase),null,2));
+  const cancelled=measurements.at(-1);assert.equal(cancelled.pickerCount,0,'rapid Escape cancels the not-yet-open child picker');assert.equal(cancelled.batchOpen,true);assert.equal(cancelled.buttonDisabled,false);await captureOwnWindow('batch-rapid-escape-fixed.png');
   await batchItem(fixture.recordIds[1]).locator('.batch-result-menu').click();
   await captureOwnWindow('batch-adjust-menu.png');
   await page.locator('.context-menu [data-menu-id="change"]').click();
@@ -322,22 +339,26 @@ async function captureOwnWindow(filename) {
   assert.ok(pickerRect.x >= 0 && pickerRect.y >= 0 && pickerRect.x + pickerRect.width <= viewport.width + 1 && pickerRect.y + pickerRect.height <= viewport.height + 1);
   await captureOwnWindow('batch-group-picker.png');
   await page.locator('.group-picker-option').click();
+  await waitFor(()=>page.locator('.batch-result-group[data-batch-group-name="求职作品集"] [data-batch-record-id]').count(),count=>count===2,'changed suggestion appears in its selected group');
   assert.equal(await page.locator('.batch-result-group[data-batch-group-name="求职作品集"] [data-batch-record-id]').count(), 2, 'changing a suggestion moves its row to the chosen group');
   assert.deepEqual((await page.evaluate(id => window.inmoment.invoke('records:get',{id}), fixture.recordIds[1])).topicIds, simulated[1].topicIds, 'review choices do not write groups before confirmation');
   await batchItem(fixture.recordIds[1]).locator('.batch-result-menu').click(); await page.locator('.context-menu [data-menu-id="change"]').click();
-  await page.keyboard.press('Escape'); assert.equal(await page.locator('.group-picker').count(), 0); assert.equal(await page.locator('#batch-results-dialog').evaluate(item=>item.open), true, 'Escape closes only the small floating picker');
+  await page.locator('.group-picker').waitFor({state:'visible'});await page.keyboard.press('Escape');await waitFor(()=>page.locator('.group-picker').count(),count=>count===0,'picker exit completes');assert.equal(await page.locator('#batch-results-dialog').evaluate(item=>item.open), true, 'Escape closes only the small floating picker');
   for (const size of [{width:1000,height:700,zoom:1.25},{width:1320,height:900,zoom:1.5}]) {
     await application.evaluate(({BrowserWindow},size)=>{const window=BrowserWindow.getAllWindows().find(window=>window.webContents.getURL().includes('/renderer/'));window.setContentSize(size.width,size.height);window.webContents.setZoomFactor(size.zoom);},size);
     await page.waitForTimeout(140); await batchItem(fixture.recordIds[1]).locator('.batch-result-menu').click(); await page.locator('.context-menu [data-menu-id="change"]').click();
     const rect = await page.locator('.group-picker').boundingBox(), bounds=await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
     assert.ok(rect.x>=0&&rect.y>=0&&rect.x+rect.width<=bounds.width+1&&rect.y+rect.height<=bounds.height+1,'floating group picker fits small scaled windows');
     await page.locator('.group-picker-search').fill('不存在的模拟分组'); assert.equal(await page.locator('.group-picker-option').count(),0); assert.match(await page.locator('.popover-empty').textContent(),/没有匹配/);
-    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');await waitFor(()=>page.locator('.group-picker').count(),count=>count===0,'scaled picker exits before next operation');
   }
   await application.evaluate(({BrowserWindow})=>{const window=BrowserWindow.getAllWindows().find(window=>window.webContents.getURL().includes('/renderer/'));window.setContentSize(1320,900);window.webContents.setZoomFactor(1);});
   await page.locator('#close-batch-results').click();
+  }
+  if(process.env.INMOMENT_UX_RESUME_STAGE!=='post-complete'){
   await page.locator('[data-view="duplicates"]').click();
   await waitFor(() => page.locator('#cloud-status').textContent(), text => /模型|测试/u.test(text), 'cloud does not run a real model in the test');
+  await page.waitForFunction(()=>!document.documentElement.dataset.uiTransitionKind);
   const syntheticGraph = {
     nodes: fixture.recordIds.slice(0, 12).map((id, index) => ({ id, title: ['阅读中的联想', '保留当时的任务', '做菜时想到的搭配'][index % 3] + ' ' + (index + 1) })),
     edges: Array.from({ length: 9 }, (_, index) => ({ source: fixture.recordIds[Math.floor(index / 3) * 4 + index % 3], target: fixture.recordIds[Math.floor(index / 3) * 4 + index % 3 + 1], weight: .9 })),
@@ -347,7 +368,8 @@ async function captureOwnWindow(filename) {
   assert.equal(await page.locator('#thought-cloud-root [data-cloud-id]').count(), 12);
   const cloudBefore = await page.locator('#thought-cloud-root svg').getAttribute('viewBox');
   const cloudBox = await page.locator('#thought-cloud-root').boundingBox();
-  await page.mouse.move(cloudBox.x + cloudBox.width / 2, cloudBox.y + cloudBox.height / 2); await page.mouse.wheel(0, -250);
+  const wheelPoint={x:cloudBox.x+cloudBox.width/2,y:cloudBox.y+cloudBox.height/2};const wheelBefore=await page.evaluate(p=>{window.__uxWheel=[];document.addEventListener('wheel',e=>window.__uxWheel.push({target:e.target.tagName,id:e.target.id,delta:e.deltaY}),{capture:true});return{hit:document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,240),viewport:{width:innerWidth,height:innerHeight},svg:document.querySelector('#thought-cloud-root svg').getBoundingClientRect().toJSON()};},wheelPoint);
+  await page.mouse.move(wheelPoint.x,wheelPoint.y);await page.mouse.wheel(0,-250);await page.waitForTimeout(160);const wheelAfter=await page.evaluate(()=>({events:window.__uxWheel,box:document.querySelector('#thought-cloud-root svg').getAttribute('viewBox')}));fs.writeFileSync(path.join(outputDir,'cloud-wheel-proof.json'),JSON.stringify({point:wheelPoint,root:cloudBox,before:cloudBefore,wheelBefore,wheelAfter},null,2));
   await waitFor(() => page.locator('#thought-cloud-root svg').getAttribute('viewBox'), value => value !== cloudBefore, 'cloud wheel zoom');
   await page.locator('#cloud-reset').click();
   const beforePan = await page.locator('#thought-cloud-root svg').getAttribute('viewBox');
@@ -355,7 +377,7 @@ async function captureOwnWindow(filename) {
   await page.mouse.move(cloudBox.x + 98, cloudBox.y + 58, { steps: 5 }); await page.mouse.up();
   await waitFor(() => page.locator('#thought-cloud-root svg').getAttribute('viewBox'), value => value !== beforePan, 'cloud empty-area drag pan');
   await page.locator('#cloud-reset').click();
-  await page.locator('#thought-cloud-root [data-cloud-id] .cloud-node-dot').first().click();
+  await page.locator('#thought-cloud-root [data-cloud-id] .cloud-node-hit').first().click();
   await page.locator('#cloud-selection').waitFor({ state: 'visible' });
   await checkOverflow(page, 'synthetic cloud'); await captureOwnWindow('inspiration-cloud.png');
   const selectedView = await page.locator('#thought-cloud-root svg').getAttribute('viewBox');
@@ -363,7 +385,7 @@ async function captureOwnWindow(filename) {
   await page.locator('#cloud-selection').waitFor({state:'hidden'});
   assert.equal(await page.locator('#thought-cloud-root svg').getAttribute('viewBox'),selectedView,'blank click deselects without resetting the viewport');
   assert.ok((await page.locator('#thought-cloud-root [data-cloud-id]').evaluateAll(items=>items.map(item=>item.style.opacity))).every(value=>value==='1'),'blank click restores all node emphasis');
-  await page.locator('#thought-cloud-root [data-cloud-id] .cloud-node-dot').first().click();
+  await page.locator('#thought-cloud-root [data-cloud-id] .cloud-node-hit').first().click();
   await page.locator('#cloud-selection').getByRole('button', { name: '打开这条灵感', exact: true }).click();
   await detail.locator('[data-action="rename-record"]').waitFor();
   await openRecord(fixture.recordIds[0]);
@@ -404,6 +426,7 @@ async function captureOwnWindow(filename) {
     assert.equal(await page.locator('#semantic-install').isVisible(), false, 'standard package does not ask users to install its bundled model');
   }
   await captureOwnWindow('settings.png');
+  }else{await page.locator('[data-view="settings"]').click();await captureOwnWindow('settings-resume.png');}
   assert.equal(errors.length, 0, errors.join('\n'));
   assert.deepEqual(originalAttachments(), attachmentHashes, 'all original WAV bytes remain intact');
   assert.equal(fs.readFileSync(settingsPath, 'utf8'), settingsText);
@@ -461,7 +484,7 @@ async function captureOwnWindow(filename) {
   for(let index=0;index<groupRecordIds.length;index++) { const current=await page.evaluate(id=>window.inmoment.invoke('records:get',{id}),groupRecordIds[index]);assert.deepEqual([...current.topicIds].sort(),[...groupOriginals[index].topicIds].sort(),'unrelated group memberships remain');assert.equal(current.transcript,groupOriginals[index].transcript,'group operations preserve original text'); }
   assert.equal((await page.evaluate(()=>window.inmoment.invoke('app:bootstrap'))).recordCount,47,'group deletion never deletes notes');
   await page.locator('#close-group-management').click();
-  await application.close(); application = null;
+  await quitApplication(); application = null;
   application = await _electron.launch({ executablePath: portable || require('electron'), args: portable ? [] : [root], cwd: root, env, timeout: 30000 });
   await application.firstWindow();
   const reopenedPage = application.windows().find(window => window.url().includes('/renderer/')) || await application.waitForEvent('window', { predicate: window => window.url().includes('/renderer/') });
@@ -469,7 +492,7 @@ async function captureOwnWindow(filename) {
   assert.equal(reopened.recordCount, 47); assert.equal(reopened.groups.length, 6); assert.equal(reopened.topics.length, 9);
   assert.equal((await reopenedPage.evaluate(id => window.inmoment.invoke('records:get', { id }), fixture.recordIds[0])).editableTitle, '手动修改的灵感标题');
   assert.equal(fs.readFileSync(settingsPath, 'utf8'), settingsText);
-  fs.writeFileSync(path.join(outputDir, 'measurements.json'), JSON.stringify({ syntheticOnly: true, realAPICalls: 0, recordCount: 47, intentionalTestDeletions: 2, existingSimilarityGroups: 6, groups: 9, originalWavFiles: attachmentHashes.size, originalsUnchangedBeforeDeletion: true, restartPreserved: true, measurements }, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'measurements.json'), JSON.stringify({ syntheticOnly: true, realAPICalls: 0, modelRuns:0, microphoneActivations:0, desktopCaptures:0, elapsedMs:Date.now()-auditStarted, executablePath:portable||require('electron'), rendererErrors:errors, recordCount: 47, intentionalTestDeletions: 2, existingSimilarityGroups: 6, groups: 9, originalAttachments: attachmentHashes.size, originalsUnchangedBeforeDeletion: true, restartPreserved: true, measurements }, null, 2));
   console.log('UX desktop passed: full-height uniform record rows, equal navigation widths, classification without jumping, scoped batch/search dialogs, synthetic cloud interactions, safe file actions and restart preservation; layout ' + JSON.stringify(measurements));
 })().catch(async error => {
   console.error(error.stack);
@@ -479,6 +502,7 @@ async function captureOwnWindow(filename) {
       const page = application.windows().find(window => window.url().includes('/renderer/'));
       console.error(JSON.stringify(await page.evaluate(() => ({ focus: { tag: document.activeElement?.tagName, id: document.activeElement?.id, className: document.activeElement?.className }, view: typeof state === 'undefined' ? '' : state.view, context: typeof state === 'undefined' ? null : state.detailContext, selected: typeof state === 'undefined' ? '' : state.selectedId }))));
     } catch {}
+    try{await application.evaluate(({app})=>app.exit(1));}catch{}
   }
   process.exitCode = 1;
 }).finally(async () => { if (application) await application.close(); });

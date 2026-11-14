@@ -9,16 +9,29 @@ const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const { OfflineASR } = require('../src/main/offline-asr.cjs');
 
+function writeTestWav(file, seconds = 2) {
+  const rate = 16000, size = rate * seconds * 2;
+  const wav = Buffer.alloc(44 + size);
+  wav.write('RIFF', 0); wav.writeUInt32LE(36 + size, 4); wav.write('WAVEfmt ', 8);
+  wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(rate, 24); wav.writeUInt32LE(rate * 2, 28);
+  wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(size, 40);
+  for (let i = 0; i < size / 2; i++) wav.writeInt16LE(Math.round(Math.sin(i * .1) * 4000), 44 + i * 2);
+  fs.writeFileSync(file, wav);
+  return wav;
+}
+
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'inmoment-asr-test-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.mkdirSync(path.join(root, 'bin'));
   fs.mkdirSync(path.join(root, 'models'));
   // These are inert test files. Every child process is injected; no model is executed.
-  fs.writeFileSync(path.join(root, 'bin', 'whisper-cli.exe'), 'inert-test-binary');
-  fs.writeFileSync(path.join(root, 'models', 'ggml-base.bin'), 'inert-test-model');
+  fs.writeFileSync(path.join(root, 'bin', 'sherpa-onnx-offline.exe'), 'inert-test-binary');
+  fs.writeFileSync(path.join(root, 'models', 'sensevoice.int8.onnx'), 'inert-test-model');
+  fs.writeFileSync(path.join(root, 'models', 'tokens.txt'), 'inert-test-tokens');
   const wav = path.join(root, 'audio.wav');
-  fs.writeFileSync(wav, 'inert-test-wav');
+  writeTestWav(wav);
   return { root, record: { id: 'record-a', segments: [{ id: 'segment-a', path: wav, durationMs: 2000 }] } };
 }
 
@@ -37,14 +50,15 @@ test('offline capabilities report missing installation without downloading or sp
   const capability = adapter.capabilities();
   assert.equal(capability.available, false);
   assert.equal(capability.offline, true);
-  assert.equal(capability.provider, 'whisper.cpp');
-  assert.equal(capability.model, 'base');
+  assert.equal(capability.provider, 'sherpa-onnx');
+  assert.equal(capability.model, 'SenseVoiceSmall');
   assert.equal(calls, 0);
 });
 
 test('offline adapter uses local CLI arguments, preserves segment ids and cleans generated text', async t => {
   const { root, record } = fixture(t);
-  record.segments.push({ ...record.segments[0], id: 'segment-b', durationMs: 3000 });
+  const second = path.join(root, 'audio-b.wav'); writeTestWav(second, 3);
+  record.segments.push({ id: 'segment-b', path: second, durationMs: 3000 });
   const calls = [];
   let clock = 100;
   const adapter = new OfflineASR(root, {
@@ -53,8 +67,7 @@ test('offline adapter uses local CLI arguments, preserves segment ids and cleans
       calls.push({ binary, args, options });
       const process = child();
       queueMicrotask(() => {
-        const prefix = args[args.indexOf('-of') + 1];
-        fs.writeFileSync(`${prefix}.json`, JSON.stringify({ transcription: [{ text: ` 测试 ${calls.length} `, offsets: { from: 10, to: 1500 } }] }));
+        for (const [index] of args.filter(arg => arg.endsWith('.wav')).entries()) process.stdout.write(JSON.stringify({ text: ` 测试 ${index + 1} ` }) + '\n');
         process.emit('close', 0);
       });
       return process;
@@ -67,13 +80,16 @@ test('offline adapter uses local CLI arguments, preserves segment ids and cleans
   assert.equal(result.durationMs, 250);
   assert.equal(result.rtf, 0.05);
   assert.equal(result.timings[0].segmentId, 'segment-a');
-  assert.equal(result.timings[0].startMs, 10);
-  assert.equal(result.timings[0].endMs, 1500);
+  assert.equal(result.timings[0].startMs, 0);
+  assert.equal(result.timings[0].endMs, 2000);
+  assert.equal(result.provider, 'sherpa-onnx');
+  assert.equal(result.model, 'SenseVoiceSmall');
+  assert.equal(calls.length, 1);
   for (const call of calls) {
-    assert.equal(call.binary, path.join(root, 'bin', 'whisper-cli.exe'));
-    assert.equal(call.args[call.args.indexOf('-l') + 1], 'zh');
-    assert.ok(call.args.includes('-ng'));
-    assert.ok(call.args.includes('-oj'));
+    assert.equal(call.binary, path.join(root, 'bin', 'sherpa-onnx-offline.exe'));
+    assert.ok(call.args.includes('--sense-voice-language=zh'));
+    assert.ok(call.args.includes('--provider=cpu'));
+    assert.ok(call.args.includes('--sense-voice-use-itn=true'));
     assert.equal(call.options.shell, false);
     assert.equal(call.options.windowsHide, true);
   }
@@ -85,13 +101,12 @@ test('abort kills the local worker, waits for close and removes its final late o
   const controller = new AbortController();
   let killed = false;
   const adapter = new OfflineASR(root, {
-    spawnImpl(binary, args) {
+    spawnImpl(binary, args, options) {
       const process = child();
       process.kill = () => {
         killed = true;
-        const prefix = args[args.indexOf('-of') + 1];
         // Simulate a final write already in progress when delete/cancel arrives.
-        fs.writeFileSync(`${prefix}.json`, JSON.stringify({ transcription: [{ text: 'late private text' }] }));
+        fs.writeFileSync(path.join(options.cwd, 'late-output.json'), JSON.stringify({ text: 'late private text' }));
         queueMicrotask(() => process.emit('close', null));
         return true;
       };
@@ -130,10 +145,150 @@ test('model stderr and failed JSON contents never appear in exposed errors', asy
 
 test('relocatable manifest accepts only paths inside its configured installation', t => {
   const { root } = fixture(t);
-  fs.writeFileSync(path.join(root, 'asr.json'), JSON.stringify({ binaryPath: '../other.exe', modelPath: 'models/ggml-base.bin' }));
+  fs.writeFileSync(path.join(root, 'asr.json'), JSON.stringify({ provider: 'sherpa-onnx', model: 'SenseVoiceSmall', binaryPath: '../other.exe', modelPath: 'models/sensevoice.int8.onnx' }));
   const capability = new OfflineASR(root).capabilities();
   assert.equal(capability.available, false);
   assert.equal(capability.reason, 'invalid-configuration');
+});
+
+test('legacy Whisper installs request the explicit SenseVoice upgrade instead of falling back', t => {
+  const { root } = fixture(t);
+  fs.writeFileSync(path.join(root, 'asr.json'), JSON.stringify({ provider: 'whisper.cpp', model: 'base' }));
+  let spawned = false;
+  const adapter = new OfflineASR(root, { spawnImpl() { spawned = true; throw new Error('must not run'); } });
+  assert.equal(adapter.capabilities().available, false);
+  assert.equal(adapter.capabilities().reason, 'upgrade-required');
+  assert.equal(spawned, false);
+});
+
+test('SenseVoice installation requires its vocabulary as well as its model', t => {
+  const { root } = fixture(t);
+  fs.unlinkSync(path.join(root, 'models', 'tokens.txt'));
+  const capability = new OfflineASR(root).capabilities();
+  assert.equal(capability.available, false);
+  assert.equal(capability.modelAvailable, false);
+});
+
+test('long audio splits at pauses without losing samples and restores original segment timing', async t => {
+  const { root, record } = fixture(t);
+  const wav = writeTestWav(record.segments[0].path, 66);
+  // A four-second pause around each preferred boundary; all quiet samples remain in the job.
+  for (const start of [20, 42]) wav.fill(0, 44 + start * 16000 * 2, 44 + (start + 4) * 16000 * 2);
+  fs.writeFileSync(record.segments[0].path, wav);
+  record.segments[0].durationMs = 66000;
+  let calls = 0;
+  const adapter = new OfflineASR(root, { spawnImpl(binary, args, options) {
+    calls++;
+    const worker = child();
+    const names = args.filter(arg => arg.endsWith('.wav'));
+    const parts = names.map(name => fs.readFileSync(path.join(options.cwd, name)));
+    assert.equal(parts.length, 3);
+    assert.deepEqual(Buffer.concat(parts.map(part => part.subarray(44))), wav.subarray(44));
+    assert.deepEqual(parts.map(part => (part.length - 44) / 32000), [22, 22, 22]);
+    queueMicrotask(() => {
+      parts.forEach((part, index) => worker.stdout.write(JSON.stringify({ text: `第${index + 1}句` }) + '\r\n'));
+      worker.emit('close', 0);
+    });
+    return worker;
+  } });
+  const result = await adapter.transcribe(record);
+  assert.equal(calls, 1);
+  assert.deepEqual(result.segments, [{ id: 'segment-a', text: '第1句 第2句 第3句' }]);
+  assert.deepEqual(result.timings.map(item => [item.segmentId, item.startMs, item.endMs]), [
+    ['segment-a', 0, 22000], ['segment-a', 22000, 44000], ['segment-a', 44000, 66000],
+  ]);
+  assert.equal(result.timingGranularity, 'audio-chunk');
+  assert.equal(result.audioDurationMs, 66000);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'jobs')), []);
+});
+
+test('truncated PCM is rejected before the model starts and leaves no staged audio', async t => {
+  const { root, record } = fixture(t);
+  const wav = fs.readFileSync(record.segments[0].path);
+  fs.writeFileSync(record.segments[0].path, wav.subarray(0, wav.length - 2));
+  let spawned = false;
+  const adapter = new OfflineASR(root, { spawnImpl() { spawned = true; return child(); } });
+  await assert.rejects(adapter.transcribe(record), { code: 'ASR_AUDIO_INVALID' });
+  assert.equal(spawned, false);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'jobs')), []);
+});
+
+test('long jobs bound native tensor batches and retain original segment order across workers', async t => {
+  const { root, record } = fixture(t);
+  record.segments = Array.from({ length: 10 }, (_, index) => ({ ...record.segments[0], id: `original-${index}` }));
+  const batchSizes = [];
+  const adapter = new OfflineASR(root, { spawnImpl(binary, args) {
+    const worker = child();
+    const names = args.filter(arg => arg.endsWith('.wav'));
+    batchSizes.push(names.length);
+    queueMicrotask(() => {
+      for (const name of names) worker.stdout.write(JSON.stringify({ text: `part${Number(name.match(/\d+/u)[0])}` }) + '\n');
+      worker.emit('close', 0);
+    });
+    return worker;
+  } });
+  const result = await adapter.transcribe(record);
+  assert.deepEqual(batchSizes, [4, 4, 2]);
+  assert.deepEqual(result.segments, record.segments.map((segment, index) => ({ id: segment.id, text: `part${index}` })));
+});
+
+test('native ONNX exception with exit zero fails visibly instead of committing empty text', async t => {
+  const { root, record } = fixture(t);
+  const adapter = new OfflineASR(root, { spawnImpl() {
+    const worker = child();
+    queueMicrotask(() => {
+      worker.stderr.write('Caught ex'); worker.stderr.write('ception: private diagnostic sentence\nReturn an empty result\n');
+      worker.stdout.write(JSON.stringify({ text: '' }) + '\n');
+      worker.emit('close', 0);
+    });
+    return worker;
+  } });
+  await assert.rejects(adapter.transcribe(record), error => error.code === 'ASR_FAILED' && !error.message.includes('private'));
+  assert.deepEqual(fs.readdirSync(path.join(root, 'jobs')), []);
+});
+
+test('malformed or missing per-chunk JSON fails without exposing transcription text', async t => {
+  const { root, record } = fixture(t);
+  for (const stdout of ['private unparseable recording sentence', '', JSON.stringify({ wrong: 'private transcript' })]) {
+    const adapter = new OfflineASR(root, { spawnImpl() {
+      const worker = child();
+      queueMicrotask(() => { worker.stdout.write(stdout); worker.emit('close', 0); });
+      return worker;
+    } });
+    await assert.rejects(adapter.transcribe(record), error => error.code === 'ASR_OUTPUT_INVALID' && !error.message.includes('private'));
+    assert.deepEqual(fs.readdirSync(path.join(root, 'jobs')), []);
+  }
+});
+
+test('structured output handles UTF-8 split across buffers and preserves an empty recognition', async t => {
+  const { root, record } = fixture(t);
+  const second = path.join(root, 'empty.wav'); writeTestWav(second, 1);
+  record.segments.push({ id: 'segment-b', path: second, durationMs: 1000 });
+  const adapter = new OfflineASR(root, { spawnImpl() {
+    const worker = child();
+    queueMicrotask(() => {
+      const output = Buffer.from(JSON.stringify({ text: '中文识别' }) + '\n' + JSON.stringify({ text: '' }) + '\n');
+      for (let i = 0; i < output.length; i += 2) worker.stdout.write(output.subarray(i, i + 2));
+      worker.emit('close', 0);
+    });
+    return worker;
+  } });
+  const result = await adapter.transcribe(record);
+  assert.deepEqual(result.segments, [{ id: 'segment-a', text: '中文识别' }, { id: 'segment-b', text: '' }]);
+});
+
+test('oversized output kills the worker and cleans its staged audio after close', async t => {
+  const { root, record } = fixture(t);
+  let killed = false;
+  const adapter = new OfflineASR(root, { spawnImpl() {
+    const worker = child();
+    worker.kill = () => { killed = true; queueMicrotask(() => worker.emit('close', null)); return true; };
+    queueMicrotask(() => worker.stdout.write('x'.repeat(8 * 1024 * 1024 + 1)));
+    return worker;
+  } });
+  await assert.rejects(adapter.transcribe(record), { code: 'ASR_OUTPUT_INVALID' });
+  assert.equal(killed, true);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'jobs')), []);
 });
 
 test('startup cleanup removes only stale transcribe directories and preserves unrelated files', t => {
@@ -166,7 +321,7 @@ test('cleanup refuses a filesystem root or the installation root as a jobs direc
     const adapter = new OfflineASR(root, { jobsDir });
     assert.throws(() => adapter.cleanupStaleJobs(), error => error.code === 'ASR_UNSAFE_JOBS_DIR');
   }
-  assert.equal(fs.readFileSync(path.join(root, 'models', 'ggml-base.bin'), 'utf8'), 'inert-test-model');
+  assert.equal(fs.readFileSync(path.join(root, 'models', 'sensevoice.int8.onnx'), 'utf8'), 'inert-test-model');
 });
 
 test('cleanup cannot race a running local worker', async t => {

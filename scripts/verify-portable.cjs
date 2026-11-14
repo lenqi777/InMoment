@@ -1,9 +1,11 @@
 'use strict';
-// Inspect files and import metadata only; never start capture or model inference.
+// Inspect files and initialize runtimes without starting capture or model inference.
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { MODEL_MANIFEST, validModelDirectory } = require('../src/main/semantic-installer.cjs');
+const { verifyOfflineASR } = require('./asr-packaging.cjs');
+const { verifyOfflineOCR, OCR_DIRECTORY, RUNNER } = require('./ocr-packaging.cjs');
 
 function digest(file, algorithm, prefix = '') {
   const hash = crypto.createHash(algorithm); hash.update(prefix);
@@ -32,18 +34,18 @@ function verifyPortable(directory, { full = true } = {}) {
   }
   const dependencies = JSON.parse(fs.readFileSync(path.join(app, 'RUNTIME-DEPENDENCIES.json'), 'utf8'));
   if (!dependencies.packages.some(item => item.name === '@huggingface/transformers')) throw new Error('Missing semantic runtime dependency.');
+  const ocr = path.join(app, OCR_DIRECTORY);
+  const withOcr = fs.existsSync(ocr);
+  if (full || withOcr) verifyOfflineOCR(ocr, path.join(app, RUNNER));
   if (full) {
     for (const file of ['Install-InMoment.cmd', 'Install-InMoment.ps1', 'ELECTRON-LICENSE.txt']) if (!fs.statSync(path.join(root, file)).isFile()) throw new Error('Missing setup/license component: ' + file);
     const asr = path.join(root, 'offline-asr');
-    const manifest = JSON.parse(fs.readFileSync(path.join(asr, 'asr.json'), 'utf8'));
-    if (manifest.binaryPath !== 'bin/whisper-cli.exe' || manifest.modelPath !== 'models/ggml-base.bin' || manifest.buildTag !== 'b5454') throw new Error('Unexpected ASR configuration.');
-    for (const relative of ['bin/whisper-cli.exe', 'bin/whisper.dll', 'bin/ggml.dll', 'bin/ggml-base.dll', 'bin/ggml-cpu-x64.dll', 'WHISPER-CPP-LICENSE.txt', 'WHISPER-MODEL-LICENSE.txt']) if (!fs.statSync(path.join(asr, relative)).isFile()) throw new Error('Missing ASR component: ' + relative);
-    if (digest(path.join(asr, 'models/ggml-base.bin'), 'sha1') !== '465707469ff3a37a2b9b8d8f89f2f99de7299dac') throw new Error('ASR model hash mismatch.');
+    verifyOfflineASR(asr);
     const semantic = path.join(root, 'offline-semantic');
     if (!validModelDirectory(semantic)) throw new Error('Missing semantic component marker or file size mismatch.');
     for (const file of MODEL_MANIFEST.files) if (digest(path.join(semantic, file.path), file.sha256 ? 'sha256' : 'sha1', file.sha256 ? '' : `blob ${file.size}\0`) !== (file.sha256 || file.gitSha1)) throw new Error('Semantic model hash mismatch: ' + file.path);
   }
-  const result = { version: JSON.parse(fs.readFileSync(path.join(app, 'package.json'), 'utf8')).version, full, files: files.length, bytes: files.reduce((sum, file) => sum + fs.statSync(file).size, 0), runtimePackages: dependencies.packages.length, modelRuns: 0, apiCalls: 0 };
+  const result = { version: JSON.parse(fs.readFileSync(path.join(app, 'package.json'), 'utf8')).version, full, withOcr, files: files.length, bytes: files.reduce((sum, file) => sum + fs.statSync(file).size, 0), runtimePackages: dependencies.packages.length, modelRuns: 0, apiCalls: 0 };
   console.log('Portable file verification:', JSON.stringify(result));
   return result;
 }

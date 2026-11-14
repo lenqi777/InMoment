@@ -1,0 +1,181 @@
+{
+  "preparedAt": "2026-11-14",
+  "applicationVersion": "0.14.31",
+  "syntheticOnly": true,
+  "productAPICalls": 0,
+  "productModelRuns": 0,
+  "microphoneActivations": 0,
+  "desktopCaptures": 0,
+  "method": "InMoment BrowserWindow.capturePage at 100% page zoom, with synthetic notes, local fixture media and preset chat messages.",
+  "screenshots": [
+    {
+      "file": "home.png",
+      "description": "全部笔记、分组、最近编辑与纸页起笔",
+      "width": 1800,
+      "height": 1200,
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "dpr": 1.25
+      },
+      "geometry": {
+        "groupColumn": {
+          "x": 46,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "notesColumn": {
+          "x": 270.9125061035156,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        }
+      },
+      "sha256": "9964c05d00838d052a721b25e5dc4fa75c2681a1e3dbc5998ac1b54324fe7111"
+    },
+    {
+      "file": "record-detail.png",
+      "description": "笔记编辑区，包含正文格式、内联图与文本附件",
+      "width": 1800,
+      "height": 1200,
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "dpr": 1.25
+      },
+      "geometry": {
+        "groupColumn": {
+          "x": 46,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "notesColumn": {
+          "x": 270.9125061035156,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "editor": {
+          "x": 495.82501220703125,
+          "y": 46,
+          "width": 944.1749877929688,
+          "height": 914
+        }
+      },
+      "sha256": "d9aa7cec304bc332037ee2ec8d0cde4347f37ca80d87085e226aafa20fb5fce0"
+    },
+    {
+      "file": "record-background.png",
+      "description": "背景信息中的合成录音、来源和示例截图",
+      "width": 1800,
+      "height": 1200,
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "dpr": 1.25
+      },
+      "geometry": {
+        "groupColumn": {
+          "x": 46,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "notesColumn": {
+          "x": 270.9125061035156,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "editor": {
+          "x": 495.82501220703125,
+          "y": 46,
+          "width": 944.1749877929688,
+          "height": 914
+        },
+        "background": {
+          "x": 440,
+          "y": 157.60000610351562,
+          "width": 560,
+          "height": 644.7999877929688
+        }
+      },
+      "sha256": "992d7bf3c5f5877523da6ce884163870aa8a6c141fe6cc071f548a6abe493ac5"
+    },
+    {
+      "file": "chat.png",
+      "description": "预置对话、排版公式、提问导航与混合附件",
+      "width": 1800,
+      "height": 1200,
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "dpr": 1.25
+      },
+      "geometry": {
+        "chatHistory": {
+          "x": 46,
+          "y": 46,
+          "width": 224.91250610351562,
+          "height": 914
+        },
+        "chatTicks": {
+          "x": 270.9125061035156,
+          "y": 482.5,
+          "width": 36,
+          "height": 41
+        },
+        "chatComposer": {
+          "x": 475.45001220703125,
+          "y": 726.4000244140625,
+          "width": 760.0125122070312,
+          "height": 209.60000610351562
+        }
+      },
+      "sha256": "20de12fe03c2d499ce762dcf335ed813e26cb2f2d1c51f591192136106055432"
+    },
+    {
+      "file": "settings.png",
+      "description": "新版 AI 服务选项、授权开关和空密钥输入",
+      "width": 1800,
+      "height": 1200,
+      "viewport": {
+        "width": 1440,
+        "height": 960,
+        "dpr": 1.25
+      },
+      "geometry": {
+        "settingsNavigation": {
+          "x": 46,
+          "y": 46,
+          "width": 184,
+          "height": 914
+        }
+      },
+      "sha256": "dc27cb4462e62f384005cb3c23b2132badca3eef6733b41e3cb346825cd791ed"
+    }
+  ],
+  "rendererErrors": [],
+  "blockedNetworkRequests": [],
+  "portableBuild": "InMoment-0.14.31-win-x64-1794640092793",
+  "runtime": {
+    "version": "0.14.31",
+    "electron": "44.7.2",
+    "node": "24.21.0",
+    "architecture": "x64"
+  },
+  "fixture": {
+    "notes": 6,
+    "groups": 4,
+    "chats": 2,
+    "networkDisabled": true,
+    "cloudEnabled": false,
+    "globalInputEnabled": false,
+    "sourcePage": "Original local fixture HTML rendered offline; no external website.",
+    "audio": "Synthesized sine waveform.",
+    "assistantOutput": "Preset for demonstration; explicitly labeled in chat."
+  },
+  "normalExit": true
+}

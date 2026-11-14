@@ -8,6 +8,9 @@ The dependency-updated current package uses **sharp 0.35.5 / libvips 8.18.7** an
 
 | Files | Source and scope |
 | --- | --- |
+| `SHERPA-ONNX-v2.0.1-LICENSE.txt` | Complete Apache-2.0 license for the fixed native offline ASR runtime |
+| `ONNXRUNTIME-v1.28.2-*` | Complete MIT license and notices for the ASR runtime's separate ONNX Runtime 1.28.2 DLLs |
+| `FUNASR-MODEL-LICENSE.txt` and `SENSEVOICE-ORIGINAL-LICENSE.txt` | Fixed complete FunASR model terms and the converted SenseVoice archive's original license pointer; these are distinct from the runtime license |
 | `ONNXRUNTIME-v1.21.0-*` | MIT and complete ThirdPartyNotices from Microsoft's fixed v1.21.0 source; supplements Node/Common 1.21.0 |
 | `ONNXRUNTIME-89f8206ba4-*` | MIT and complete ThirdPartyNotices from the source commit recorded inside the Web/Common dev packages |
 | `SHARP-v0.34.5-LICENSE.txt` | Exact original Apache-2.0 text copied from the installed Windows x64 package |

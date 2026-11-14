@@ -1,0 +1,96 @@
+@import url("./ui-focus.css");
+
+/* Shared, text-first desktop controls. SVG masks are decorative inside labels. */
+:where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:not([role=switch], [role=checkbox], [role=radio])) {
+  --button-tint: var(--color-button-neutral);
+  --button-state-background: color-mix(in srgb, var(--button-tint) var(--button-state-strength), transparent);
+  border-radius: var(--radius-button);
+  background-color: transparent;
+  transition: background-color var(--motion-fast), scale var(--motion-button-press), var(--button-extra-transition, color var(--motion-fast));
+}
+@media (hover: hover) {
+  :where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:hover:not([role=switch], [role=checkbox], [role=radio], :disabled, [aria-disabled=true])) {
+    background-color: var(--button-state-background);
+  }
+}
+/* Disclosure state describes the controlled content. Only a current choice keeps the pressed surface. */
+:where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:not([role=switch], [role=checkbox], [role=radio])):where(
+  [aria-pressed=true], [aria-current]:not([aria-current=false], [aria-current=""]), [aria-selected=true], [aria-checked=true], [data-button-selected=true]
+) {
+  background-color: var(--button-state-background);
+
+  &.ui-icon-ready > .ui-action-icon {
+    --icon-outline-clip: var(--icon-outline-hidden, inset(0 0 100% 0));
+    --icon-solid-clip: inset(0 0 0 0);
+  }
+}
+:where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:active:not([role=switch], [role=checkbox], [role=radio], :disabled, [aria-disabled=true])) {
+  background-color: var(--button-state-background);
+  scale: .97;
+}
+.button {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2); min-height: var(--control-height); max-width: 100%;
+  padding: 8px 16px; border: 1px solid transparent;
+  color: var(--color-text); font: inherit; font-size: var(--font-body);
+  font-weight: 500; line-height: 22px; white-space: nowrap; text-align: center;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.button.primary { font-weight: 600; }
+.button.secondary { border-color: var(--color-border-strong); color: var(--color-text); }
+.button.quiet { color: var(--color-muted); }
+.button.compact { min-height: var(--control-compact); padding: 6px 12px; font-size: var(--font-body); }
+.button:disabled { opacity: .5; cursor: not-allowed; }
+.icon-button {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: var(--control-icon); min-width: var(--control-icon); height: var(--control-icon);
+  padding: 6px; border: 0;
+  color: var(--color-muted); font: inherit; font-size: 22px; line-height: 1; cursor: pointer;
+}
+.text-button {
+  display: inline-flex; align-items: center; justify-content: flex-start;
+  gap: var(--space-2); min-height: var(--control-compact); padding: 6px 8px;
+  border: 0;
+  color: var(--color-muted); font: inherit; font-size: var(--font-small); line-height: 22px;
+  text-align: left; cursor: pointer;
+}
+button.ui-hover-action {
+  color: var(--button-foreground, var(--color-text));
+}
+/* Action meaning stays visible in both text and icon controls. */
+:is(button,[role=button],a,summary):is(.primary,.ui-confirm) {
+  --button-tint: var(--color-accent);
+  color: var(--color-accent);
+}
+:is(button,[role=button],a,summary):is(.danger,.ui-cancel) {
+  --button-tint: var(--color-danger);
+  color: var(--color-danger);
+}
+:is(button,[role=button],a,summary)[data-ui-icon=sparkle] {
+  --button-tint: var(--color-accent);
+  --button-foreground: var(--color-sparkle);
+  color: var(--button-foreground);
+}
+:is(button,[role=button]):is(.ui-confirm,.ui-cancel):is(:disabled,[aria-disabled=true]) { opacity:.5; cursor:not-allowed; }
+[data-ui-icon] { display:inline-flex; align-items:center; gap:var(--space-2); }
+[data-ui-icon]::before { content:none; }
+.ui-action-icon { display:inline-block; position:relative; flex:0 0 var(--icon-size); width:var(--icon-size); height:var(--icon-size); vertical-align:middle; pointer-events:none; }
+.ui-action-icon>span { position:absolute; inset:0; display:block; background:currentColor; mask-position:center; mask-size:contain; mask-repeat:no-repeat; transform:translate(var(--icon-optical-x,0px),var(--icon-optical-y,0px)); }
+.ui-action-icon[data-icon=chevron] { --icon-optical-y:-.5px; }
+.ui-icon-outline { mask-image:var(--ui-icon-outline); clip-path:var(--icon-outline-clip,inset(0 0 0 0)); transition:clip-path var(--motion-icon,180ms) cubic-bezier(.2,.65,.3,1); }
+.ui-icon-solid { mask-image:var(--ui-icon-solid); clip-path:var(--icon-solid-clip,var(--icon-solid-hidden,inset(100% 0 0 0))); transition:clip-path var(--motion-icon,180ms) cubic-bezier(.2,.65,.3,1); }
+.ui-icon-ready:is(button,a[href],summary,[role=button]):not(:disabled, [aria-disabled=true]):is(:hover,:focus-visible) > .ui-action-icon {
+  --icon-outline-clip: var(--icon-outline-hidden, inset(0 0 100% 0));
+  --icon-solid-clip: inset(0 0 0 0);
+}
+.ui-icon-ready:is(:disabled, [aria-disabled=true]) > .ui-action-icon > span { transition:none; }
+@media(prefers-reduced-motion:reduce) { .ui-icon-solid,.ui-icon-outline { transition:none; } }
+@media (pointer: coarse) {
+  .button, .button.compact, .icon-button, .text-button { min-height: var(--control-touch); }
+  .icon-button { min-width: var(--control-touch); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:not([role=switch], [role=checkbox], [role=radio])) { transition: none; }
+  :where(button, [role=button]:not(svg *), a:is(.button, .icon-button, .text-button), summary):where(:active:not([role=switch], [role=checkbox], [role=radio])) { scale: none; }
+}

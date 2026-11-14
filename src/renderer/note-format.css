@@ -1,0 +1,96 @@
+.note-format-toolbar {
+  width: max-content;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.note-format-toolbar:popover-open { flex-direction: row; }
+.note-format-toolbar .note-format-button {
+  min-width: var(--control-icon);
+  min-height: var(--control-icon);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  font-size: var(--font-body);
+  line-height: 20px;
+}
+.note-format-toolbar .note-format-button:has(> .note-format-value) {
+  border-color: var(--color-border);
+}
+.note-format-toolbar .note-format-icon-button {
+  flex: 0 0 var(--control-icon);
+  padding: 0;
+}
+.note-format-button > .ui-action-icon { --icon-size: 16px; }
+.note-format-button > .ui-action-icon[data-icon="chevron"] { order: 1; --icon-size: 12px; }
+.note-format-size .note-format-value { min-width: 2ch; font-variant-numeric: tabular-nums; }
+#note-body::highlight(note-format-selection) { background-color: var(--color-selection); }
+
+.context-menu:has(> [data-menu-id^="note-format-symbol-"]):popover-open {
+  display: grid;
+  width: 296px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+[data-menu-id^="note-format-symbol-"] {
+  min-height: 36px;
+  justify-content: center;
+  padding: 0;
+  font-size: 18px;
+}
+.note-format-swatch,
+[data-menu-id^="note-format-color-"]::before {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--swatch, var(--color-text));
+}
+.note-format-swatch { --swatch: var(--note-format-swatch, var(--color-text)); }
+[data-menu-id^="note-format-color-"]::before { content: ""; }
+@media (forced-colors: active) {
+  .note-format-swatch,
+  [data-menu-id^="note-format-color-"]::before {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+  }
+}
+[data-menu-id="note-format-color-text"] { --swatch: var(--color-text); }
+[data-menu-id="note-format-color-gray"] { --swatch: var(--color-muted); }
+[data-menu-id="note-format-color-red"] { --swatch: var(--color-danger); }
+[data-menu-id="note-format-color-orange"] { --swatch: var(--color-warning); }
+[data-menu-id="note-format-color-green"] { --swatch: var(--color-accent); }
+[data-menu-id="note-format-color-blue"] { --swatch: #1e59a8; }
+[data-menu-id="note-format-color-purple"] { --swatch: #7041a3; }
+
+#note-body :where(p, h1, h2, h3, ul, ol, blockquote) { margin: 0; }
+#note-body :where(h1, h2, h3) {
+  margin-block-start: var(--space-3);
+  font-weight: 650;
+  line-height: 1.4;
+}
+#note-body :where(h1, h2, h3):first-child { margin-block-start: 0; }
+#note-body h1 { font-size: 28px; }
+#note-body h2 { font-size: var(--font-heading); }
+#note-body h3 { font-size: 19px; }
+#note-body :where(ul, ol) { padding-inline-start: var(--space-6); }
+#note-body blockquote {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--color-border-strong);
+}
+
+/* Chromium creates these size attributes during editing. The document stores CSS px. */
+#note-body font[size="1"] { font-size: 12px; }
+#note-body font[size="2"] { font-size: 14px; }
+#note-body font[size="3"] { font-size: 16px; }
+#note-body font[size="4"] { font-size: 20px; }
+#note-body font[size="5"] { font-size: 24px; }
+#note-body font[size="6"] { font-size: 32px; }
+#note-body font[size="7"] { font-size: 40px; }

@@ -1,0 +1,3 @@
+/* Brand green supplies contrast; the warm hinge echoes the i mark. */
+.brand-scissors { display:block;width:20px;height:20px;flex-shrink:0;color:var(--color-brand);overflow:visible;pointer-events:none; }
+.brand-scissors-arm { transform-origin:50% 50%;transform-box:view-box; }

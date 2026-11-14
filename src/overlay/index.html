@@ -3,21 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'">
   <title>InMoment 录音</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="mode-hidden" data-mode="hidden">
+  <div id="capsule-hint" class="capsule-hint" aria-hidden="true">上滑问 AI</div>
   <section class="capture-panel" aria-label="录音浮层">
+    <div id="recording-capsule" class="recording-capsule" role="group" aria-label="录音状态" aria-hidden="true">
+      <button id="capsule-logo" class="capsule-logo" type="button" aria-label="暂停录音" aria-describedby="capsule-hint" title="暂停录音" disabled></button>
+      <span id="capsule-waveform" class="capsule-waveform" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+      <span id="capsule-timer">00:00</span>
+    </div>
     <div id="hold-progress" class="hold-progress" role="progressbar" aria-label="长按右键以开始录音" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hold-progress-fill"></span></div>
     <div id="card-content" class="card-content" aria-hidden="true">
-    <header class="drag-region"><span class="brand-symbol">i</span><span>InMoment</span><span id="mode-label">灵感现场</span></header>
-    <div class="recording-body"><div id="orb" class="orb"><span class="orb-core"></span><span class="wave wave-one"></span><span class="wave wave-two"></span><span class="wave wave-three"></span><span class="wave wave-four"></span></div><div class="recording-info"><h1 id="status-title">准备留下这段想法</h1><p id="status-description">正在连接录音会话…</p><div id="timer">00:00</div></div></div>
     <div id="error-message" class="error hidden" role="alert"></div>
+    <div id="background-capture-status" class="error hidden" role="status">未能截取来源窗口。</div>
     <details id="draft-topics" class="draft-topics hidden"><summary id="draft-topics-label">分组：未分类</summary><div id="draft-topic-options" class="draft-topic-options" aria-label="已有分组，可多选"></div></details>
-    <div id="actions" class="actions"><button id="discard" class="button delete">删除</button><button id="continue" class="button secondary hidden">继续录音</button><button id="pause" class="button primary hidden">暂停</button><button id="finish" class="button primary hidden">完成记录</button></div>
+    <div id="draft-retention" class="draft-retention hidden" role="group" aria-label="保存内容，至少选择一项">
+      <label class="draft-audio-option"><input id="draft-keep-text" type="checkbox" checked>保留文字</label>
+      <label class="draft-audio-option"><input id="draft-keep-audio" type="checkbox">保留录音</label>
+    </div>
+    <div id="draft-text-review" class="draft-text-review hidden">
+      <label for="draft-transcript">笔记正文</label>
+      <textarea id="draft-transcript" class="ui-caret-focus" rows="3" maxlength="1000000" aria-describedby="draft-text-status"></textarea>
+      <p id="draft-text-status" class="hidden" role="status"></p>
+      <button id="draft-retry-text" class="button quiet compact hidden" type="button" data-ui-icon="transcript">重试转写</button>
+    </div>
+    <div id="actions" class="actions"><button id="ask-ai" class="button quiet ask-ai" type="button" data-ui-icon="sparkle">问 AI</button><button id="discard" class="button delete danger" type="button" data-ui-icon="trash">删除</button><button id="finish" class="button primary" type="button">存为笔记</button></div>
     </div>
   </section>
-  <script src="app.js"></script>
+  <script src="../shared/ui-icons.js"></script><script src="../shared/brand-morph.js"></script><script src="app.js"></script>
 </body>
 </html>

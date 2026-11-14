@@ -1,6 +1,6 @@
 {
   "name": "inmoment",
-  "version": "0.10.0",
+  "version": "0.14.31",
   "private": true,
   "description": "本地优先的情境化灵感捕捉工具 · Windows MVP",
   "main": "src/main/main.cjs",
@@ -15,15 +15,20 @@
     "dev": "node scripts/launch.cjs",
     "native:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1",
     "asr:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-offline-asr.ps1",
+    "ocr:setup": "node scripts/setup-offline-ocr.cjs",
     "test": "node --test tests/*.test.cjs",
     "check": "node scripts/check.cjs",
+    "ui:audit": "node scripts/notes-audit.cjs",
+    "ui:chat-audit": "node scripts/chat-composer-audit.cjs",
     "package": "node scripts/package.cjs",
     "package:minimal": "node scripts/package.cjs --minimal"
   },
   "devDependencies": {
-    "electron": "44.7.2"
+    "electron": "44.7.2",
+    "katex": "0.19.1"
   },
   "dependencies": {
-    "@huggingface/transformers": "3.8.1"
+    "@huggingface/transformers": "3.8.1",
+    "pdfjs-dist": "6.5.438"
   }
 }

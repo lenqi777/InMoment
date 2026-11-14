@@ -57,6 +57,22 @@ test('notes changed or deleted during embedding cannot reappear as a fresh index
   assert.deepEqual(await f.service.search({ query: '准备删除' }), []);
 });
 
+test('whole-text edits invalidate old embedding evidence and clearing text keeps it cleared', async t => {
+  const calls = [];
+  const f = await fixture(t, async texts => { calls.push(...texts); return texts.map(() => [1, 0]); });
+  const record = f.record('edited-original', '旧笔记不能再次进入索引');
+  await f.service.search({ query: '第一次' }); calls.length = 0;
+  f.store.updateRecord(record.id, { transcript: '新原文保留\n\n换行' });
+  await f.service.search({ query: '第二次' });
+  let passages = calls.filter(text => text.startsWith('passage:'));
+  assert.ok(passages.some(text => text.includes('新原文保留\n\n换行')));
+  assert.equal(passages.some(text => text.includes('旧笔记')), false);
+  calls.length = 0; f.store.updateRecord(record.id, { transcript: '' });
+  await f.service.search({ query: '第三次' });
+  passages = calls.filter(text => text.startsWith('passage:'));
+  assert.equal(passages.some(text => text.includes('旧笔记') || text.includes('新原文')), false);
+});
+
 test('missing local model is explicit and never requests a download or substitutes keywords', async t => {
   const f = await fixture(t, null); let installed = 0;
   f.service.installer = { status: () => ({ installed: false, phase: 'missing' }), modelDirectory: () => null, install() { installed++; }, cancel() {} };
